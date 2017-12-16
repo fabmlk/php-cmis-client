@@ -10,7 +10,7 @@ namespace Dkd\PhpCmis\DataObjects;
  * file that was distributed with this source code.
  */
 
-use Dkd\PhpCmis\CmisObject\CmisObjectInterface;
+use Dkd\PhpCmis\Bindings\Browser\NavigationService;
 use Dkd\PhpCmis\Constants;
 use Dkd\PhpCmis\Data\AceInterface;
 use Dkd\PhpCmis\Data\DocumentInterface;
@@ -25,9 +25,13 @@ use Dkd\PhpCmis\Enum\IncludeRelationships;
 use Dkd\PhpCmis\Enum\UnfileObject;
 use Dkd\PhpCmis\Enum\VersioningState;
 use Dkd\PhpCmis\Exception\CmisRuntimeException;
+use Dkd\PhpCmis\ObjectFactory;
 use Dkd\PhpCmis\OperationContextInterface;
 use Dkd\PhpCmis\PropertyIds;
 use Dkd\PhpCmis\TreeInterface;
+use Dkd\PhpCmis\Paging\AbstractPageFetcher;
+use Dkd\PhpCmis\Paging\CollectionIterable;
+use Dkd\PhpCmis\Paging\Page;
 use GuzzleHttp\Stream\StreamInterface;
 
 /**
@@ -322,32 +326,68 @@ class Folder extends AbstractFileableCmisObject implements FolderInterface
     /**
      * Returns the children of this folder using the given OperationContext.
      *
+     * https://github.com/apache/chemistry-opencmis/blob/trunk/chemistry-opencmis-client/chemistry-opencmis-client-impl/src/main/java/org/apache/chemistry/opencmis/client/runtime/FolderImpl.java#L269
+     *
      * @param OperationContextInterface|null $context
-     * @return CmisObjectInterface[] A list of the child objects for the specified folder.
+     * @return CollectionIterable
      */
     public function getChildren(OperationContextInterface $context = null)
     {
         $context = $this->ensureContext($context);
-        $children = $this->getBinding()->getNavigationService()->getChildren(
-            $this->getRepositoryId(),
-            $this->getId(),
-            $context->getQueryFilterString(),
-            $context->getOrderBy(),
-            $context->isIncludeAllowableActions(),
-            $context->getIncludeRelationships(),
-            $context->getRenditionFilterString(),
-            $context->isIncludePathSegments()
-        );
-
-        $result = [];
+        $navigationService = $this->getBinding()->getNavigationService();
         $objectFactory = $this->getObjectFactory();
-        foreach ($children->getObjects() as $objectData) {
-            if ($objectData->getObject() !== null) {
-                $result[] = $objectFactory->convertObject($objectData->getObject(), $context);
-            }
-        }
+        $repositoryId = $this->getRepositoryId();
+        $folderId = $this->getId();
 
-        return $result;
+        return new CollectionIterable(0, new class($context->getMaxItemsPerPage(), $navigationService, $context, $objectFactory, $repositoryId, $folderId) extends AbstractPageFetcher {
+                private $context;
+                private $navigationService;
+                private $objectFactory;
+                private $repositoryId;
+                private $folderId;
+
+                public function __construct($maxItemsPerPage, NavigationService $navigationService, OperationContextInterface $context, ObjectFactory $objectFactory, $repositoryId, $folderId)
+                {
+                    $this->context = $context;
+                    $this->navigationService = $navigationService;
+                    $this->objectFactory = $objectFactory;
+                    $this->repositoryId = $repositoryId;
+                    $this->folderId = $folderId;
+
+                    parent::__construct($maxItemsPerPage);
+                }
+
+                public function fetchPage($skipCount)
+                {
+                    // get the children
+                    $children = $this->navigationService->getChildren(
+                        $this->repositoryId,
+                        $this->folderId,
+                        $this->context->getQueryFilterString(),
+                        $this->context->getOrderBy(),
+                        $this->context->isIncludeAllowableActions(),
+                        $this->context->getIncludeRelationships(),
+                        $this->context->getRenditionFilterString(),
+                        $this->context->isIncludePathSegments(),
+                        $this->maxNumItems,
+                        $skipCount,
+                        null
+                    );
+
+                    // convert objects
+                    $page = [];
+                    $childObjects = $children->getObjects();
+                    if (null !== $childObjects) {
+                        foreach ($childObjects as $objectData) {
+                            if (null !== $objectData->getObject()) {
+                                $page[] = $this->objectFactory->convertObject($objectData->getObject(), $this->context);
+                            }
+                        }
+                    }
+
+                    return new Page($page, $children->getNumItems(), $children->hasMoreItems());
+                }
+        });
     }
 
     /**
