@@ -293,34 +293,65 @@ class Folder extends AbstractFileableCmisObject implements FolderInterface
      * Returns all checked out documents in this folder using the given OperationContext.
      *
      * @param OperationContextInterface|null $context
-     * @return DocumentInterface[] A list of checked out documents.
+     *
+     * @return CollectionIterable
      */
     public function getCheckedOutDocs(OperationContextInterface $context = null)
     {
         $context = $this->ensureContext($context);
-        $checkedOutDocs = $this->getBinding()->getNavigationService()->getCheckedOutDocs(
-            $this->getRepositoryId(),
-            $this->getId(),
-            $context->getQueryFilterString(),
-            $context->getOrderBy(),
-            $context->isIncludeAllowableActions(),
-            $context->getIncludeRelationships(),
-            $context->getRenditionFilterString()
-        );
-
-        $result = [];
+        $navigationService = $this->getBinding()->getNavigationService();
         $objectFactory = $this->getObjectFactory();
-        foreach ($checkedOutDocs->getObjects() as $objectData) {
-            $document = $objectFactory->convertObject($objectData, $context);
-            if (!($document instanceof DocumentInterface)) {
-                // should not happen but could happen if the repository is not implemented correctly ...
-                continue;
+        $repositoryId = $this->getRepositoryId();
+        $folderId = $this->getId();
+
+        return new CollectionIterable(0, new class($navigationService, $context, $objectFactory, $repositoryId, $folderId) extends AbstractPageFetcher {
+            private $context;
+            private $navigationService;
+            private $objectFactory;
+            private $repositoryId;
+            private $folderId;
+
+            public function __construct(NavigationService $navigationService, OperationContextInterface $context, ObjectFactory $objectFactory, $repositoryId, $folderId)
+            {
+                $this->context = $context;
+                $this->navigationService = $navigationService;
+                $this->objectFactory = $objectFactory;
+                $this->repositoryId = $repositoryId;
+                $this->folderId = $folderId;
+
+                parent::__construct($context->getMaxItemsPerPage());
             }
 
-            $result[] = $document;
-        }
+            public function fetchPage($skipCount)
+            {
+                $checkedOutDocs = $this->navigationService->getCheckedOutDocs(
+                    $this->repositoryId,
+                    $this->folderId,
+                    $this->context->getQueryFilterString(),
+                    $this->context->getOrderBy(),
+                    $this->context->isIncludeAllowableActions(),
+                    $this->context->getIncludeRelationships(),
+                    $this->context->getRenditionFilterString(),
+                    $this->maxNumItems,
+                    $skipCount,
+                    null
+                );
 
-        return $result;
+                // convert objects
+                $page = [];
+                foreach ($checkedOutDocs->getObjects() as $objectData) {
+                    $document = $this->objectFactory->convertObject($objectData, $this->context);
+                    if (!($document instanceof DocumentInterface)) {
+                        // should not happen but could happen if the repository is not implemented correctly ...
+                        continue;
+                    }
+
+                    $page[] = $document;
+                }
+
+                return new Page($page, $checkedOutDocs->getNumItems(), $checkedOutDocs->hasMoreItems());
+            }
+        });
     }
 
     /**
@@ -339,14 +370,14 @@ class Folder extends AbstractFileableCmisObject implements FolderInterface
         $repositoryId = $this->getRepositoryId();
         $folderId = $this->getId();
 
-        return new CollectionIterable(0, new class($context->getMaxItemsPerPage(), $navigationService, $context, $objectFactory, $repositoryId, $folderId) extends AbstractPageFetcher {
+        return new CollectionIterable(0, new class($navigationService, $context, $objectFactory, $repositoryId, $folderId) extends AbstractPageFetcher {
                 private $context;
                 private $navigationService;
                 private $objectFactory;
                 private $repositoryId;
                 private $folderId;
 
-                public function __construct($maxItemsPerPage, NavigationService $navigationService, OperationContextInterface $context, ObjectFactory $objectFactory, $repositoryId, $folderId)
+                public function __construct(NavigationService $navigationService, OperationContextInterface $context, ObjectFactory $objectFactory, $repositoryId, $folderId)
                 {
                     $this->context = $context;
                     $this->navigationService = $navigationService;
@@ -354,7 +385,7 @@ class Folder extends AbstractFileableCmisObject implements FolderInterface
                     $this->repositoryId = $repositoryId;
                     $this->folderId = $folderId;
 
-                    parent::__construct($maxItemsPerPage);
+                    parent::__construct($context->getMaxItemsPerPage());
                 }
 
                 public function fetchPage($skipCount)
@@ -377,11 +408,9 @@ class Folder extends AbstractFileableCmisObject implements FolderInterface
                     // convert objects
                     $page = [];
                     $childObjects = $children->getObjects();
-                    if (null !== $childObjects) {
-                        foreach ($childObjects as $objectData) {
-                            if (null !== $objectData->getObject()) {
-                                $page[] = $this->objectFactory->convertObject($objectData->getObject(), $this->context);
-                            }
+                    foreach ($childObjects as $objectData) {
+                        if (null !== $objectData->getObject()) {
+                            $page[] = $this->objectFactory->convertObject($objectData->getObject(), $this->context);
                         }
                     }
 

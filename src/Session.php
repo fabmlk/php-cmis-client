@@ -22,12 +22,11 @@ use Dkd\PhpCmis\Data\ObjectDataInterface;
 use Dkd\PhpCmis\Data\ObjectIdInterface;
 use Dkd\PhpCmis\Data\ObjectTypeInterface;
 use Dkd\PhpCmis\Data\PolicyInterface;
-use Dkd\PhpCmis\Data\RelationshipInterface;
 use Dkd\PhpCmis\Data\RepositoryInfoInterface;
 use Dkd\PhpCmis\DataObjects\ObjectId;
+use Dkd\PhpCmis\DataObjects\Relationship;
 use Dkd\PhpCmis\Definitions\TypeDefinitionContainerInterface;
 use Dkd\PhpCmis\Definitions\TypeDefinitionInterface;
-use Dkd\PhpCmis\Definitions\TypeDefinitionListInterface;
 use Dkd\PhpCmis\Enum\AclPropagation;
 use Dkd\PhpCmis\Enum\BaseTypeId;
 use Dkd\PhpCmis\Enum\CmisVersion;
@@ -40,6 +39,9 @@ use Dkd\PhpCmis\Exception\CmisNotSupportedException;
 use Dkd\PhpCmis\Exception\CmisObjectNotFoundException;
 use Dkd\PhpCmis\Exception\CmisRuntimeException;
 use Dkd\PhpCmis\Exception\IllegalStateException;
+use Dkd\PhpCmis\Paging\AbstractPageFetcher;
+use Dkd\PhpCmis\Paging\CollectionIterable;
+use Dkd\PhpCmis\Paging\Page;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\CacheProvider;
@@ -792,7 +794,8 @@ class Session implements SessionInterface
      * @param boolean $includeProperties indicates whether changed properties should be included in the result or not
      * @param integer|null $maxNumItems maximum numbers of events
      * @param OperationContextInterface|null $context the OperationContext
-     * @return ChangeEventsInterface the change events
+     *
+     * @return CollectionIterable
      */
     public function getContentChanges(
         $changeLogToken,
@@ -804,16 +807,58 @@ class Session implements SessionInterface
             $context = $this->getDefaultContext();
         }
 
-        $objectList = $this->getBinding()->getDiscoveryService()->getContentChanges(
-            $this->getRepositoryInfo()->getId(),
-            $changeLogToken,
-            $includeProperties,
-            $context->isIncludePolicies(),
-            $context->isIncludeAcls(),
-            $maxNumItems
-        );
+        $discoveryService = $this->getBinding()->getDiscoveryService();
+        $objectFactory = $this->getObjectFactory();
+        $repositoryId = $this->getRepositoryInfo()->getId();
 
-        return $this->getObjectFactory()->convertChangeEvents($changeLogToken, $objectList);
+        return new CollectionIterable(0, new class($discoveryService, $maxNumItems, $context, $objectFactory, $repositoryId, $changeLogToken, $includeProperties) extends AbstractPageFetcher {
+            private $context;
+            private $objectFactory;
+            private $repositoryId;
+            private $discoveryService;
+            private $includeProperties;
+            private $token;
+            private $firstPage = true;
+
+            public function __construct(NavigationServiceInterface $discoveryService, $maxNumItems, OperationContextInterface $context, ObjectFactory $objectFactory, $repositoryId, $changeLogToken, $includeProperties)
+            {
+                $this->context = $context;
+                $this->objectFactory = $objectFactory;
+                $this->repositoryId = $repositoryId;
+                $this->discoveryService = $discoveryService;
+                $this->token = $changeLogToken;
+                $this->includeProperties = $includeProperties;
+
+                parent::__construct($maxNumItems ?: \PHP_INT_MAX);
+            }
+
+            public function fetchPage()
+            {
+                // fetch the data
+                $objectList = $this->discoveryService->getContentChanges(
+                    $this->repositoryId,
+                    $this->token,
+                    $this->includeProperties,
+                    $this->context->isIncludePolicies(),
+                    $this->context->isIncludeAcls(),
+                    $this->maxNumItems
+                );
+
+                // convert type definitions
+                foreach($objectList->getObjects() as $objectData) {
+                    $page[] = $this->objectFactory->convertChangeEvent($objectData);
+                }
+
+                if (!$this->firstPage) {
+                    // the last entry of the previous page is repeated
+                    // -> remove the first entry
+                    \array_shift($page);
+                }
+                $this->firstPage = false;
+
+                return new Page($page, $objectList->getNumItems(), $objectList->hasMoreItems());
+            }
+        });
     }
 
     /**
@@ -990,7 +1035,8 @@ class Session implements SessionInterface
      * @param RelationshipDirection $relationshipDirection
      * @param ObjectTypeInterface $type
      * @param OperationContextInterface|null $context
-     * @return RelationshipInterface[]
+     *
+     * @return CollectionIterable
      */
     public function getRelationships(
         ObjectIdInterface $objectId,
@@ -1004,15 +1050,62 @@ class Session implements SessionInterface
             $context = $this->getDefaultContext();
         }
 
-        // TODO: Implement cache!
+        $relationshipService = $this->getBinding()->getRelationshipService();
+        $repositoryId = $this->getRepositoryId();
+        $typeId = $type->getId();
+        $objectId = $objectId->getId();
 
-        return $this->getBinding()->getRelationshipService()->getObjectRelationships(
-            $this->getRepositoryId(),
-            $objectId->getId(),
-            $includeSubRelationshipTypes,
-            $relationshipDirection,
-            $type->getId()
-        );
+        return new CollectionIterable(0, new class($this, $relationshipService, $context, $repositoryId, $objectId, $includeSubRelationshipTypes, $relationshipDirection, $typeId) extends AbstractPageFetcher {
+
+            private $session;
+            private $repositoryId;
+            private $relationshipService;
+            private $includeSubRelationshipTypes;
+            private $relationshipDirection;
+            private $objectId;
+            private $typeId;
+            private $context;
+
+            public function __construct(Session $session, RelationshipServiceInterface $relationshipService, OperationContextInterface $context, $repositoryId, $objectId, $includeSubRelationshipTypes, RelationshipDirection $relationshipDirection, $typeId)
+            {
+                $this->session = $session;
+                $this->repositoryId = $repositoryId;
+                $this->relationshipService = $relationshipService;
+                $this->objectId = $objectId;
+                $this->typeId = $typeId;
+                $this->includeSubRelationshipTypes = $includeSubRelationshipTypes;
+                $this->relationshipDirection = $relationshipDirection;
+                $this->context = $context;
+
+                parent::__construct($context->getMaxItemsPerPage());
+            }
+
+            public function fetchPage($skipCount)
+            {
+                // fetch the data
+                $relList = $this->relationshipService->getObjectRelationships(
+                    $this->repositoryId,
+                    $this->objectId,
+                    $this->includeSubRelationshipTypes,
+                    $this->relationshipDirection,
+                    $this->typeId,
+                    $this->maxNumItems,
+                    $skipCount
+                );
+
+                // convert relationship objects
+                $page = [];
+                foreach ($relList->getObjects() as $relObject) {
+                    $relationship = $this->session->getObject($relObject->getId(), $this->context);
+                    if (!($relationship instanceof Relationship)) {
+                        throw new CmisRuntimeException("Repository returned an object that is not a relationship!");
+                    }
+                    $page[] = $relationship;
+                }
+
+                return new Page($page, $relList->getNumItems(), $relList->hasMoreItems());
+            }
+        });
     }
 
     /**
@@ -1063,18 +1156,57 @@ class Session implements SessionInterface
      *
      * @param string $typeId the type ID or <code>null</code> to request the base types
      * @param boolean $includePropertyDefinitions indicates whether the property definitions should be included or not
-     * @return TypeDefinitionListInterface the type iterator
+     *
+     * @return CollectionIterable
      * @throws CmisObjectNotFoundException - if a type with the given type ID doesn't exist
      */
     public function getTypeChildren($typeId, $includePropertyDefinitions)
     {
-        return $this->getBinding()->getRepositoryService()->getTypeChildren(
-            $this->getRepositoryId(),
-            $typeId,
-            $includePropertyDefinitions,
-            999, // set max items to 999 - TODO: Implement CollectionIterable() method to iterate over all objects.
-            0 // TODO: Implement CollectionIterable() method to iterate over all objects.
-        );
+        $repositoryService = $this->getBinding()->getRepositoryService();
+        $repositoryId = $this->getRepositoryId();
+        $objectFactory = $this->getObjectFactory();
+        $context = $this->getDefaultContext();
+
+        return new CollectionIterable(0, new class($repositoryService, $context, $objectFactory, $repositoryId, $typeId, $includePropertyDefinitions) extends AbstractPageFetcher {
+
+            private $objectFactory;
+            private $repositoryId;
+            private $repositoryService;
+            private $includePropertyDefinitions;
+            private $typeId;
+            private $session;
+
+            public function __construct(RepositoryServiceInterface $repositoryService, OperationContextInterface $context, ObjectFactoryInterface $objectFactory, $repositoryId, $typeId, $includePropertyDefinitions)
+            {
+                $this->repositoryId = $repositoryId;
+                $this->repositoryService = $repositoryService;
+                $this->typeId = $typeId;
+                $this->includePropertyDefinitions = $includePropertyDefinitions;
+                $this->objectFactory = $objectFactory;
+
+                parent::__construct($context->getMaxItemsPerPage());
+            }
+
+            public function fetchPage($skipCount)
+            {
+                // fetch the data
+                $typeDefinitionList = $this->repositoryService->getTypeChildren(
+                    $this->repositoryId,
+                    $this->typeId,
+                    $this->includePropertyDefinitions,
+                    $this->maxNumItems,
+                    $skipCount
+                );
+
+                // convert type definitions
+                $page = [];
+                foreach ($typeDefinitionList->getList() as $typeDefinition) {
+                    $page[] = $this->objectFactory->convertTypeDefinition($typeDefinition);
+                }
+
+                return new Page($page, $typeDefinitionList->getNumItems(), $typeDefinitionList->hasMoreItems());
+            }
+        });
     }
 
     /**
@@ -1125,7 +1257,8 @@ class Session implements SessionInterface
      * @param boolean $searchAllVersions specifies whether non-latest document versions should be included or not,
      *      <code>true</code> searches all document versions, <code>false</code> only searches latest document versions
      * @param OperationContextInterface|null $context the operation context to use
-     * @return QueryResultInterface[]
+     *
+     * @return CollectionIterable
      * @throws CmisInvalidArgumentException If statement is empty
      */
     public function query($statement, $searchAllVersions = false, OperationContextInterface $context = null)
@@ -1138,30 +1271,56 @@ class Session implements SessionInterface
             $context = $this->getDefaultContext();
         }
 
-        $queryResults = [];
-        $skipCount = 0;
+        $discoveryService = $this->getBinding()->getDiscoveryService();
+        $repositoryId = $this->getRepositoryInfo()->getId();
+        $objectFactory = $this->getObjectFactory();
 
-        $objectList = $this->getBinding()->getDiscoveryService()->query(
-            $this->getRepositoryInfo()->getId(),
-            $statement,
-            $searchAllVersions,
-            $context->getIncludeRelationships(),
-            $context->getRenditionFilterString(),
-            $context->isIncludeAllowableActions(),
-            $context->getMaxItemsPerPage(),
-            $skipCount
-        );
+        return new CollectionIterable(0, new class($discoveryService, $context, $objectFactory, $repositoryId, $statement, $searchAllVersions) extends AbstractPageFetcher {
+            private $context;
+            private $objectFactory;
+            private $repositoryId;
+            private $discoveryService;
+            private $statement;
+            private $searchAllVersions;
 
-        foreach ($objectList->getObjects() as $objectData) {
-            $queryResult = $this->getObjectFactory()->convertQueryResult($objectData);
-            if ($queryResult instanceof QueryResultInterface) {
-                $queryResults[] = $queryResult;
+            public function __construct(DiscoveryServiceInterface $discoveryService, OperationContextInterface $context, ObjectFactoryInterface $objectFactory, $repositoryId, $statement, $searchAllVersions)
+            {
+                $this->context = $context;
+                $this->objectFactory = $objectFactory;
+                $this->repositoryId = $repositoryId;
+                $this->discoveryService = $discoveryService;
+                $this->statement = $statement;
+                $this->searchAllVersions = $searchAllVersions;
+
+                parent::__construct($context->getMaxItemsPerPage());
             }
-        }
 
-        // TODO: Implement pagination using skipCount
+            public function fetchPage($skipCount)
+            {
+                // fetch the data
+                $objectList = $this->discoveryService->query(
+                    $this->repositoryId,
+                    $this->statement,
+                    $this->searchAllVersions,
+                    $this->context->getIncludeRelationships(),
+                    $this->context->getRenditionFilterString(),
+                    $this->context->isIncludeAllowableActions(),
+                    $this->maxNumItems,
+                    $skipCount
+                );
 
-        return $queryResults;
+                // convert type definitions
+                $queryResults = [];
+                foreach ($objectList->getObjects() as $objectData) {
+                    $queryResult = $this->objectFactory->convertQueryResult($objectData);
+                    if ($queryResult instanceof QueryResultInterface) {
+                        $queryResults[] = $queryResult;
+                    }
+                }
+
+                return new Page($queryResults, $objectList->getNumItems(), $objectList->hasMoreItems());
+            }
+        });
     }
 
     /**
@@ -1172,7 +1331,8 @@ class Session implements SessionInterface
      * @param boolean $searchAllVersions specifies whether non-latest document versions should be included or not,
      *      <code>true</code> searches all document versions, <code>false</code> only searches latest document versions
      * @param OperationContextInterface|null $context the operation context to use
-     * @return CmisObjectInterface[]
+     *
+     * @return CollectionIterable
      * @throws CmisInvalidArgumentException If type id is empty
      */
     public function queryObjects(
@@ -1210,30 +1370,56 @@ class Session implements SessionInterface
         $statement = 'SELECT ' . $querySelect . ' FROM ' . $typeDefinition->getQueryName() . $whereClause . $orderBy;
         $queryStatement = new QueryStatement($this, $statement);
 
-        $resultObjects = [];
-        $skipCount = 0;
+        $discoveryService = $this->getBinding()->getDiscoveryService();
+        $repositoryId = $this->getRepositoryInfo()->getId();
+        $objectFactory = $this->getObjectFactory();
 
-        $objectList = $this->getBinding()->getDiscoveryService()->query(
-            $this->getRepositoryInfo()->getId(),
-            $queryStatement->toQueryString(),
-            $searchAllVersions,
-            $context->getIncludeRelationships(),
-            $context->getRenditionFilterString(),
-            $context->isIncludeAllowableActions(),
-            $context->getMaxItemsPerPage(),
-            $skipCount
-        );
+        return new CollectionIterable(0, new class($discoveryService, $context, $objectFactory, $repositoryId, $queryStatement, $searchAllVersions) extends AbstractPageFetcher {
+            private $context;
+            private $objectFactory;
+            private $repositoryId;
+            private $discoveryService;
+            private $queryStatement;
+            private $searchAllVersions;
 
-        foreach ($objectList->getObjects() as $objectData) {
-            $object = $this->getObjectFactory()->convertObject($objectData, $context);
-            if ($object instanceof CmisObjectInterface) {
-                $resultObjects[] = $object;
+            public function __construct(NavigationServiceInterface $discoveryService, OperationContextInterface $context, ObjectFactoryInterface $objectFactory, $repositoryId, QueryStatementInterface $queryStatement, $searchAllVersions)
+            {
+                $this->context = $context;
+                $this->objectFactory = $objectFactory;
+                $this->repositoryId = $repositoryId;
+                $this->discoveryService = $discoveryService;
+                $this->queryStatement = $queryStatement;
+                $this->searchAllVersions = $searchAllVersions;
+
+                parent::__construct($context->getMaxItemsPerPage());
             }
-        }
 
-        // TODO: Implement pagination using skipCount
+            public function fetchPage($skipCount)
+            {
+                // fetch the data
+                $objectList = $this->discoveryService->query(
+                    $this->repositoryId,
+                    $this->queryStatement->toQueryString(),
+                    $this->searchAllVersions,
+                    $this->context->getIncludeRelationships(),
+                    $this->context->getRenditionFilterString(),
+                    $this->context->isIncludeAllowableActions(),
+                    $this->maxNumItems,
+                    $skipCount
+                );
 
-        return $resultObjects;
+                // convert type definitions
+                $resultObjects = [];
+                foreach ($objectList->getObjects() as $objectData) {
+                    $object = $this->objectFactory->convertObject($objectData, $this->context);
+                    if ($object instanceof CmisObjectInterface) {
+                        $resultObjects[] = $object;
+                    }
+                }
+
+                return new Page($resultObjects, $objectList->getNumItems(), $objectList->hasMoreItems());
+            }
+        });
     }
 
     /**

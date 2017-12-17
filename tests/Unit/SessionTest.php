@@ -231,10 +231,6 @@ class SessionTest extends \PHPUnit_Framework_TestCase
     public function testGetRelationships()
     {
         $bindingsMock = $this->getBindingsHelperMock();
-        $bindingsMock->createBinding([])->getRelationshipService()
-            ->expects($this->once())
-            ->method('getObjectRelationships')
-            ->with();
         $session = new Session(
             [SessionParameter::REPOSITORY_ID => 'foo'],
             null,
@@ -254,7 +250,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
         $property = new \ReflectionProperty($session, 'repositoryInfo');
         $property->setAccessible(true);
         $property->setValue($session, $repositoryInfo);
-        $session->getRelationships(
+        $relationships = $session->getRelationships(
             new PhpCmis\DataObjects\ObjectId('foobar-object-id'),
             true,
             PhpCmis\Enum\RelationshipDirection::cast(PhpCmis\Enum\RelationshipDirection::TARGET),
