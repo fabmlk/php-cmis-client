@@ -23,6 +23,7 @@ use Dkd\PhpCmis\Data\ObjectIdInterface;
 use Dkd\PhpCmis\Data\ObjectTypeInterface;
 use Dkd\PhpCmis\Data\PolicyInterface;
 use Dkd\PhpCmis\Data\RepositoryInfoInterface;
+use Dkd\PhpCmis\DataObjects\Document;
 use Dkd\PhpCmis\DataObjects\ObjectId;
 use Dkd\PhpCmis\DataObjects\Relationship;
 use Dkd\PhpCmis\Definitions\TypeDefinitionContainerInterface;
@@ -920,7 +921,52 @@ class Session implements SessionInterface
         $major = false,
         OperationContextInterface $context = null
     ) {
-        // TODO: Implement getLatestDocumentVersion() method.
+        if ($context === null) {
+            $context = $this->getDefaultContext();
+        }
+        $versionSeriesId =  null;
+
+        // first attempt: if we got a Document object, try getting the version series ID from it
+        if ($objectId instanceof Document) {
+            if (!$this->getTypeDefinition(BaseTypeId::CMIS_DOCUMENT)->isVersionable()) {
+                // if it is not versionable, a getObject() is sufficient
+                return $this->getObject($objectId, $context);
+            }
+            $versionSeriesId = $objectId->getVersionSeriesId();
+        }
+
+        // second attempt: if we have a Document object in the cache, retrieve
+        // the version series ID form there
+        if (null === $versionSeriesId) {
+            if ($context->isCacheEnabled()) {
+                $sourceObj = $this->cache->getById($objectId->getId(), $context->getCacheKey());
+                if ($sourceObj instanceof Document) {
+                    if (!$this->getTypeDefinition(BaseTypeId::CMIS_DOCUMENT)->isVersionable()) {
+                        // if it is not versionable, a getObject() is sufficient
+                        return $this->getObject($sourceObj, $context);
+                    }
+                }
+            }
+        }
+
+        // get the object
+        $objectData = $this->binding->getVersioningService()->getObjectOfLatestVersion(
+            $this->getRepositoryId(), $objectId->getId(), $versionSeriesId, $major,
+            $context->getQueryFilterString(), $context->isIncludeAllowableActions(),
+            $context->getIncludeRelationships(), $context->getRenditionFilterString(),
+            $context->isIncludePolicies(), $context->isIncludeAcls(), null
+        );
+
+        $result = $this->getObjectFactory()->convertObject($objectData, $context);
+
+        $this->cache->save($result->getId(), $context->getCacheKey());
+
+        // check result
+        if (!($result instanceof Document)) {
+            throw new \InvalidArgumentException("Latest version is not a document!");
+        }
+
+        return $result;
     }
 
     /**
