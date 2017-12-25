@@ -288,10 +288,6 @@ class ObjectFactory implements ObjectFactoryInterface
         array $secondaryTypes = [],
         array $updatabilityFilter = []
     ) {
-        if (empty($properties)) {
-            return null;
-        }
-
         if ($type === null) {
             $type = $this->getTypeDefinition(
                 isset($properties[PropertyIds::OBJECT_TYPE_ID]) ? $properties[PropertyIds::OBJECT_TYPE_ID] : null
