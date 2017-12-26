@@ -11,6 +11,7 @@ namespace Dkd\PhpCmis\Bindings\Browser;
  */
 
 use Dkd\PhpCmis\AclServiceInterface;
+use Dkd\PhpCmis\Constants;
 use Dkd\PhpCmis\Data\AclInterface;
 use Dkd\PhpCmis\Data\ExtensionDataInterface;
 use Dkd\PhpCmis\Enum\AclPropagation;
@@ -39,7 +40,31 @@ class AclService extends AbstractBrowserBindingService implements AclServiceInte
         AclPropagation $aclPropagation = null,
         ExtensionDataInterface $extension = null
     ) {
-        // TODO: Implement applyAcl() method.
+        $url = $this->getObjectUrl($repositoryId, $objectId);
+        $queryArray = [];
+
+        if ($addAces !== null) {
+            $queryArray = $this->convertAclToQueryArray(
+                $addAces,
+                Constants::CONTROL_ADD_ACE_PRINCIPAL,
+                Constants::CONTROL_ADD_ACE_PERMISSION
+            );
+        }
+        if ($removeAces !== null) {
+            $queryArray = array_merge($queryArray, $this->convertAclToQueryArray(
+                $removeAces,
+                Constants::CONTROL_REMOVE_ACE_PRINCIPAL,
+                Constants::CONTROL_REMOVE_ACE_PERMISSION
+            ));
+        }
+
+        if ($aclPropagation !== null) {
+            $queryArray[Constants::PARAM_ACL_PROPAGATION] = (string) $aclPropagation;
+        }
+
+        $queryArray[Constants::CONTROL_CMISACTION] = Constants::CMISACTION_APPLY_ACL;
+
+        $this->getJsonConverter()->convertAcl((array) $this->postJson($url, $queryArray));
     }
 
     /**
@@ -62,6 +87,11 @@ class AclService extends AbstractBrowserBindingService implements AclServiceInte
         $onlyBasicPermissions = true,
         ExtensionDataInterface $extension = null
     ) {
-        // TODO: Implement getAcl() method.
+        $url = $this->getObjectUrl($repositoryId, $objectId, Constants::SELECTOR_ACL);
+        $url->getQuery()->modify([
+            Constants::PARAM_ONLY_BASIC_PERMISSIONS => $onlyBasicPermissions
+        ]);
+
+        return $this->getJsonConverter()->convertAcl((array) $this->readJson($url));
     }
 }

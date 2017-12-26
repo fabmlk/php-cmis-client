@@ -1,6 +1,6 @@
 <?php
 /**
- * This example will get the latest document version.
+ * This example will apply ACL to a the root folder.
  */
 
 require_once(__DIR__ . '/../vendor/autoload.php');
@@ -38,18 +38,12 @@ if (CMIS_REPOSITORY_ID === null) {
 
 $session = $sessionFactory->createSession($parameters);
 
-$doc = $session->getObjectByPath('/User Homes/mjackson/toto');
-echo 'Current Id: ' . $doc->getId() . PHP_EOL;
-
-$objectIdReturned = $doc->setContentStream(
-    \GuzzleHttp\Stream\Stream::factory("Hello Toto!"),
-    true,
-    false
+$rootFolder = $session->getRootFolder();
+$rootFolder->applyAcl(
+    [$session->getObjectFactory()->createAce('mjackson', ['cmis:all'])],
+    [],
+    \Dkd\PhpCmis\Enum\AclPropagation::cast(\Dkd\PhpCmis\Enum\AclPropagation::OBJECTONLY)
 );
 
-if ($objectIdReturned) {
-    echo 'Id returned by update content stream: ' . $objectIdReturned->getId() . PHP_EOL;
-}
-
-$latestDoc = $doc->getObjectOfLatestVersion(false);
-echo 'Latest Id: ' . $latestDoc->getId() . PHP_EOL;
+$acl = $session->getAcl($rootFolder, true);
+var_dump($acl);

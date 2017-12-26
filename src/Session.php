@@ -280,7 +280,15 @@ class Session implements SessionInterface
         $removeAces = [],
         AclPropagation $aclPropagation = null
     ) {
-        // TODO: Implement applyAcl() method.
+        return $this->getBinding()
+            ->getAclService()
+            ->applyAcl(
+                $this->getRepositoryId(),
+                $objectId->getId(),
+                $this->getObjectFactory()->convertAces($addAces),
+                $this->getObjectFactory()->convertAces($removeAces),
+                $aclPropagation
+            );
     }
 
     /**
@@ -755,7 +763,13 @@ class Session implements SessionInterface
      */
     public function getAcl(ObjectIdInterface $objectId, $onlyBasicPermissions)
     {
-        // TODO: Implement getAcl() method.
+        return $this->getBinding()
+            ->getAclService()
+            ->getAcl(
+                $this->getRepositoryId(),
+                $objectId->getId(),
+                $onlyBasicPermissions
+            );
     }
 
     /**
@@ -833,7 +847,7 @@ class Session implements SessionInterface
                 parent::__construct($maxNumItems ?: \PHP_INT_MAX);
             }
 
-            public function fetchPage()
+            public function fetchPage($skipCount)
             {
                 // fetch the data
                 $objectList = $this->discoveryService->getContentChanges(
@@ -1220,7 +1234,6 @@ class Session implements SessionInterface
             private $repositoryService;
             private $includePropertyDefinitions;
             private $typeId;
-            private $session;
 
             public function __construct(RepositoryServiceInterface $repositoryService, OperationContextInterface $context, ObjectFactoryInterface $objectFactory, $repositoryId, $typeId, $includePropertyDefinitions)
             {

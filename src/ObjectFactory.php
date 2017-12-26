@@ -499,7 +499,7 @@ class ObjectFactory implements ObjectFactoryInterface
      */
     public function createAce($principal, array $permissions)
     {
-        // TODO: Implement createAce() method.
+        return $this->getBindingsObjectFactory()->createAccessControlEntry($principal, $permissions);
     }
 
     /**
@@ -508,7 +508,7 @@ class ObjectFactory implements ObjectFactoryInterface
      */
     public function createAcl(array $aces)
     {
-        // TODO: Implement createAcl() method.
+        return $this->getBindingsObjectFactory()->createAccessControlList($aces);
     }
 
     /**
