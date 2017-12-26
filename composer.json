@@ -31,10 +31,5 @@
         "psr-4": {
             "Dkd\\PhpCmis\\": "src/"
         }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "2.x-dev"
-        }
     }
 }
