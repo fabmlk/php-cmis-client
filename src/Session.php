@@ -1441,7 +1441,7 @@ class Session implements SessionInterface
             private $queryStatement;
             private $searchAllVersions;
 
-            public function __construct(NavigationServiceInterface $discoveryService, OperationContextInterface $context, ObjectFactoryInterface $objectFactory, $repositoryId, QueryStatementInterface $queryStatement, $searchAllVersions)
+            public function __construct(DiscoveryServiceInterface $discoveryService, OperationContextInterface $context, ObjectFactoryInterface $objectFactory, $repositoryId, QueryStatementInterface $queryStatement, $searchAllVersions)
             {
                 $this->context = $context;
                 $this->objectFactory = $objectFactory;
