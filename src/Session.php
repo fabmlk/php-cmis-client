@@ -1520,7 +1520,16 @@ class Session implements SessionInterface
      */
     public function setAcl(ObjectIdInterface $objectId, array $aces)
     {
-        // TODO: Implement setAcl() method.
+        $currentAcl = $this->getAcl($objectId, false);
+        $removeAces = [];
+
+        foreach ($currentAcl->getAces() as $ace) {
+            if ($ace->isDirect()) {
+                $removeAces[] = $ace;
+            }
+        }
+
+        return $this->applyAcl($objectId, $aces, $removeAces, AclPropagation::cast(AclPropagation::OBJECTONLY));
     }
 
     /**
