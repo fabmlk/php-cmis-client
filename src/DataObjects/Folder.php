@@ -15,6 +15,7 @@ use Dkd\PhpCmis\Constants;
 use Dkd\PhpCmis\Data\AceInterface;
 use Dkd\PhpCmis\Data\DocumentInterface;
 use Dkd\PhpCmis\Data\FailedToDeleteDataInterface;
+use Dkd\PhpCmis\Data\FileableCmisObjectInterface;
 use Dkd\PhpCmis\Data\FolderInterface;
 use Dkd\PhpCmis\Data\ItemInterface;
 use Dkd\PhpCmis\Data\ObjectIdInterface;
@@ -27,6 +28,7 @@ use Dkd\PhpCmis\Enum\VersioningState;
 use Dkd\PhpCmis\Exception\CmisRuntimeException;
 use Dkd\PhpCmis\OperationContextInterface;
 use Dkd\PhpCmis\PropertyIds;
+use Dkd\PhpCmis\Tree;
 use Dkd\PhpCmis\TreeInterface;
 use GuzzleHttp\Stream\StreamInterface;
 
@@ -528,7 +530,30 @@ class Folder extends AbstractFileableCmisObject implements FolderInterface
      */
     private function convertBindingContainer(array $bindingContainerList, OperationContextInterface $context)
     {
-        // TODO implement when Tree and ObjectInFolderContainer is implemented
-        throw new \Exception('Not yet implemented!');
+        $result = [];
+        $objectFactory = $this->getObjectFactory();
+
+        foreach ($bindingContainerList as $objectInFolderContainer) {
+            if (!$objectInFolderContainer->getObject() || !$objectInFolderContainer->getObject()->getObject()) {
+                // shouldn't happen ...
+                continue;
+            }
+
+            // convert the object
+            $object = $objectFactory->convertObject($objectInFolderContainer->getObject()->getObject(), $context);
+            if (!($object instanceof FileableCmisObjectInterface)) {
+                // the repository must not return objects that are not fileable,
+                // but you never know...
+                continue;
+            }
+
+            // convert the children
+            $children = $this->convertBindingContainer($objectInFolderContainer->getChildren(), $context);
+
+            // add both to current container
+            $result[] = new Tree($object, $children);
+        }
+
+        return $result;
     }
 }
