@@ -114,11 +114,15 @@ class VersioningService extends AbstractBrowserBindingService implements Version
         if ($contentStream) {
             $queryArray['content'] = $contentStream;
         }
+
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
         $objectId = $this->getJsonConverter()->convertObject(
             (array) $this->postJson(
                 $this->getObjectUrl($repositoryId, $objectId),
                 $queryArray
-            )
+            ),
+            $typeCache
         )->getId();
     }
 
@@ -138,6 +142,8 @@ class VersioningService extends AbstractBrowserBindingService implements Version
         ExtensionDataInterface $extension = null,
         $contentCopied = null
     ) {
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
         $objectData = $this->getJsonConverter()->convertObject(
             (array) $this->postJson(
                 $this->getObjectUrl($repositoryId, $objectId),
@@ -146,7 +152,8 @@ class VersioningService extends AbstractBrowserBindingService implements Version
                     [],
                     $extension
                 )
-            )
+            ),
+            $typeCache
         );
         $objectId = $objectData->getId();
     }
@@ -173,12 +180,15 @@ class VersioningService extends AbstractBrowserBindingService implements Version
         $includeAllowableActions = false,
         ExtensionDataInterface $extension = null
     ) {
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
         return $this->getJsonConverter()->convertObjectList(
             [
                 'objects' => (array) $this->readJson(
                     $this->getObjectUrl($repositoryId, $objectId, Constants::SELECTOR_VERSIONS)
                 )
-            ]
+            ],
+            $typeCache
         )->getObjects();
     }
 
@@ -219,7 +229,10 @@ class VersioningService extends AbstractBrowserBindingService implements Version
         $object = (array) $this->readJson(
             $this->getObjectUrl($repositoryId, $objectId, Constants::SELECTOR_VERSIONS)
         );
-        return $this->getJsonConverter()->convertObject(reset($object));
+
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        return $this->getJsonConverter()->convertObject(reset($object), $typeCache);
     }
 
     /**

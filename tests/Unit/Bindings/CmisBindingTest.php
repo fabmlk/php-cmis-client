@@ -48,19 +48,31 @@ class CmisBindingTest extends \PHPUnit_Framework_TestCase
         $session = $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\BindingSessionInterface')->setMethods(
             ['put']
         )->getMockForAbstractClass();
-        $session->expects($this->once())->method('put');
-        new CmisBinding($session, [SessionParameter::BINDING_CLASS => 'foo']);
+        $session->expects($this->exactly(1))->method('put');
+        $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\CmisBinding')
+            ->setConstructorArgs([
+                $session,
+                [SessionParameter::BINDING_CLASS => 'foo']
+            ])->getMock();
 
         $session = $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\BindingSessionInterface')->setMethods(
             ['put']
         )->getMockForAbstractClass();
         $session->expects($this->exactly(3))->method('put');
-        new CmisBinding($session, [SessionParameter::BINDING_CLASS => 'foo', 1, 2]);
+        $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\CmisBinding')
+            ->setConstructorArgs([
+                $session,
+                [SessionParameter::BINDING_CLASS => 'foo', 1, 2]
+            ])->getMock();
     }
 
     public function testConstructorCreatesRepositoryServiceInstance()
     {
-        $binding = new CmisBinding(new Session(), [SessionParameter::BINDING_CLASS => 'foo']);
+        $binding = $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\CmisBinding')
+            ->setConstructorArgs([
+                new Session(),
+                [SessionParameter::BINDING_CLASS => 'foo']
+            ])->getMock();
         $this->assertAttributeInstanceOf(
             '\\Dkd\\PhpCmis\\Bindings\\Browser\\RepositoryService',
             'repositoryService',
@@ -70,7 +82,11 @@ class CmisBindingTest extends \PHPUnit_Framework_TestCase
 
     public function testConstructorCreatesObjectFactoryInstanceIfNoneGiven()
     {
-        $binding = new CmisBinding(new Session(), [SessionParameter::BINDING_CLASS => 'foo']);
+        $binding = $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\CmisBinding')
+            ->setConstructorArgs([
+                new Session(),
+                [SessionParameter::BINDING_CLASS => 'foo']
+            ])->getMock();
         $this->assertAttributeInstanceOf(
             '\\Dkd\\PhpCmis\\DataObjects\\BindingsObjectFactory',
             'objectFactory',
@@ -84,12 +100,15 @@ class CmisBindingTest extends \PHPUnit_Framework_TestCase
         $objectFactory = $this->getMockBuilder('\\Dkd\\PhpCmis\\DataObjects\\BindingsObjectFactory')->setMockClassName(
             'CustomObjectFactory'
         )->getMock();
-        $binding = new CmisBinding(
-            new Session(),
-            [SessionParameter::BINDING_CLASS => 'foo'],
-            null,
-            $objectFactory
-        );
+
+        $binding = $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\CmisBinding')
+            ->setConstructorArgs([
+                new Session(),
+                [SessionParameter::BINDING_CLASS => 'foo'],
+                null,
+                $objectFactory
+            ])->getMock();
+
         $this->assertAttributeSame(
             $objectFactory,
             'objectFactory',
@@ -99,7 +118,14 @@ class CmisBindingTest extends \PHPUnit_Framework_TestCase
 
     public function testGetCmisBindingsHelperReturnsCmisBindingsHelper()
     {
-        $binding = new CmisBinding(new Session(), [SessionParameter::BINDING_CLASS => 'foo']);
+        $binding = $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\CmisBinding')
+            ->setConstructorArgs([
+                new Session(),
+                [SessionParameter::BINDING_CLASS => 'foo']
+            ])
+            ->setMethods(['clearAllCaches'])
+            ->getMock();
+
         $this->assertInstanceOf('\\Dkd\\PhpCmis\\Bindings\\CmisBindingsHelper', $binding->getCmisBindingsHelper());
     }
 
@@ -112,7 +138,7 @@ class CmisBindingTest extends \PHPUnit_Framework_TestCase
                 new Session(),
                 [SessionParameter::BINDING_CLASS => 'foo']
             ]
-        )->setMethods(['getCmisBindingsHelper'])->getMock();
+        )->setMethods(['getCmisBindingsHelper', 'clearAllCaches'])->getMock();
 
         $cmisBindingsHelperMock = $this->getMockBuilder(
             '\\Dkd\\PhpCmis\\Bindings\\CmisBindingsHelper'
@@ -136,7 +162,13 @@ class CmisBindingTest extends \PHPUnit_Framework_TestCase
 
     public function testGetRepositoryServiceReturnsInstanceOfRepositoryService()
     {
-        $binding = new CmisBinding(new Session(), [SessionParameter::BINDING_CLASS => 'foo']);
+        $binding = $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\CmisBinding')
+            ->setConstructorArgs([
+                new Session(),
+                [SessionParameter::BINDING_CLASS => 'foo']
+            ])
+            ->setMethods(['clearAllCaches'])
+            ->getMock();
         $this->assertInstanceOf('\\Dkd\\PhpCmis\\RepositoryServiceInterface', $binding->getRepositoryService());
     }
 
@@ -149,7 +181,7 @@ class CmisBindingTest extends \PHPUnit_Framework_TestCase
                 new Session(),
                 [SessionParameter::BINDING_CLASS => 'foo']
             ]
-        )->setMethods(['getCmisBindingsHelper'])->getMock();
+        )->setMethods(['getCmisBindingsHelper', 'clearAllCaches'])->getMock();
 
         $cmisBindingsHelperMock = $this->getMockBuilder(
             '\\Dkd\\PhpCmis\\Bindings\\CmisBindingsHelper'
@@ -180,12 +212,16 @@ class CmisBindingTest extends \PHPUnit_Framework_TestCase
         $objectFactory = $this->getMockBuilder('\\Dkd\\PhpCmis\\DataObjects\\BindingsObjectFactory')->setMockClassName(
             'CustomObjectFactory'
         )->getMock();
-        $binding = new CmisBinding(
-            new Session(),
-            [SessionParameter::BINDING_CLASS => 'foo'],
-            null,
-            $objectFactory
-        );
+        $binding = $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\CmisBinding')
+            ->setConstructorArgs([
+                new Session(),
+                [SessionParameter::BINDING_CLASS => 'foo'],
+                null,
+                $objectFactory
+            ])
+            ->setMethods(['clearAllCaches'])
+            ->getMock();
+
         $this->assertSame(
             $objectFactory,
             $binding->getObjectFactory()
@@ -201,7 +237,7 @@ class CmisBindingTest extends \PHPUnit_Framework_TestCase
                 new Session(),
                 [SessionParameter::BINDING_CLASS => 'foo']
             ]
-        )->setMethods(['getCmisBindingsHelper'])->getMock();
+        )->setMethods(['getCmisBindingsHelper', 'clearAllCaches'])->getMock();
 
         $cmisBindingsHelperMock = $this->getMockBuilder(
             '\\Dkd\\PhpCmis\\Bindings\\CmisBindingsHelper'

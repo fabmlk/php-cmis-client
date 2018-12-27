@@ -152,10 +152,11 @@ class ObjectFactoryTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    public function testConvertPropertiesReturnsNullIfNoPropertiesGiven()
-    {
-        $this->assertNull($this->getObjectFactory()->convertProperties([]));
-    }
+    // irrelevant since 98295a9768f38720dbffeac801ae0a979efd5ca0
+//    public function testConvertPropertiesReturnsNullIfNoPropertiesGiven()
+//    {
+//        $this->assertNull($this->getObjectFactory()->convertProperties([]));
+//    }
 
     public function testConvertPropertiesThrowsExceptionIfSecondaryTypesPropertyIsSetButNotAnArray()
     {

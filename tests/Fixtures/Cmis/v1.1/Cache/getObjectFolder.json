@@ -1,0 +1,167 @@
+{
+  "properties": {
+    "cmis:allowedChildObjectTypeIds": {
+      "id": "cmis:allowedChildObjectTypeIds",
+      "localName": "cmis:allowedChildObjectTypeIds",
+      "displayName": "Allowed Child Object Type Ids",
+      "queryName": "cmis:allowedChildObjectTypeIds",
+      "type": "id",
+      "cardinality": "multi",
+      "value": null
+    },
+    "cmis:path": {
+      "id": "cmis:path",
+      "localName": "cmis:path",
+      "displayName": "Path",
+      "queryName": "cmis:path",
+      "type": "string",
+      "cardinality": "single",
+      "value": "\/test folder"
+    },
+    "cmis:objectTypeId": {
+      "id": "cmis:objectTypeId",
+      "localName": "cmis:objectTypeId",
+      "displayName": "Object Type Id",
+      "queryName": "cmis:objectTypeId",
+      "type": "id",
+      "cardinality": "single",
+      "value": "cmis:folder"
+    },
+    "cmis:name": {
+      "id": "cmis:name",
+      "localName": "cmis:name",
+      "displayName": "Name",
+      "queryName": "cmis:name",
+      "type": "string",
+      "cardinality": "single",
+      "value": "test folder"
+    },
+    "cmis:creationDate": {
+      "id": "cmis:creationDate",
+      "localName": "cmis:creationDate",
+      "displayName": "Creation Date",
+      "queryName": "cmis:creationDate",
+      "type": "datetime",
+      "cardinality": "single",
+      "value": 1546771294754
+    },
+    "cmis:changeToken": {
+      "id": "cmis:changeToken",
+      "localName": "cmis:changeToken",
+      "displayName": "Change Token",
+      "queryName": "cmis:changeToken",
+      "type": "string",
+      "cardinality": "single",
+      "value": "1546771294754"
+    },
+    "cmis:secondaryObjectTypeIds": {
+      "id": "cmis:secondaryObjectTypeIds",
+      "localName": "cmis:secondaryObjectTypeIds",
+      "displayName": "Secondary Type Ids",
+      "queryName": "cmis:secondaryObjectTypeIds",
+      "type": "id",
+      "cardinality": "multi",
+      "value": null
+    },
+    "cmis:lastModifiedBy": {
+      "id": "cmis:lastModifiedBy",
+      "localName": "cmis:lastModifiedBy",
+      "displayName": "Last Modified By",
+      "queryName": "cmis:lastModifiedBy",
+      "type": "string",
+      "cardinality": "single",
+      "value": "admin"
+    },
+    "cmis:createdBy": {
+      "id": "cmis:createdBy",
+      "localName": "cmis:createdBy",
+      "displayName": "Created By",
+      "queryName": "cmis:createdBy",
+      "type": "string",
+      "cardinality": "single",
+      "value": "admin"
+    },
+    "cmis:objectId": {
+      "id": "cmis:objectId",
+      "localName": "cmis:objectId",
+      "displayName": "Object Id",
+      "queryName": "cmis:objectId",
+      "type": "id",
+      "cardinality": "single",
+      "value": "189"
+    },
+    "cmis:baseTypeId": {
+      "id": "cmis:baseTypeId",
+      "localName": "cmis:baseTypeId",
+      "displayName": "Base Type Id",
+      "queryName": "cmis:baseTypeId",
+      "type": "id",
+      "cardinality": "single",
+      "value": "cmis:folder"
+    },
+    "cmis:description": {
+      "id": "cmis:description",
+      "localName": "cmis:description",
+      "displayName": "Description",
+      "queryName": "cmis:description",
+      "type": "string",
+      "cardinality": "single",
+      "value": null
+    },
+    "cmis:lastModificationDate": {
+      "id": "cmis:lastModificationDate",
+      "localName": "cmis:lastModificationDate",
+      "displayName": "Last Modification Date",
+      "queryName": "cmis:lastModificationDate",
+      "type": "datetime",
+      "cardinality": "single",
+      "value": 1546771294754
+    },
+    "cmis:parentId": {
+      "id": "cmis:parentId",
+      "localName": "cmis:parentId",
+      "displayName": "Parent Id",
+      "queryName": "cmis:parentId",
+      "type": "id",
+      "cardinality": "single",
+      "value": "100"
+    }
+  },
+  "allowableActions": {
+    "canDeleteObject": true,
+    "canUpdateProperties": true,
+    "canGetFolderTree": true,
+    "canGetProperties": true,
+    "canGetObjectRelationships": false,
+    "canGetObjectParents": true,
+    "canGetFolderParent": true,
+    "canGetDescendants": true,
+    "canMoveObject": true,
+    "canDeleteContentStream": false,
+    "canCheckOut": false,
+    "canCancelCheckOut": false,
+    "canCheckIn": false,
+    "canSetContentStream": false,
+    "canGetAllVersions": false,
+    "canAddObjectToFolder": false,
+    "canRemoveObjectFromFolder": false,
+    "canGetContentStream": false,
+    "canApplyPolicy": true,
+    "canGetAppliedPolicies": true,
+    "canRemovePolicy": false,
+    "canGetChildren": true,
+    "canCreateDocument": true,
+    "canCreateFolder": true,
+    "canCreateRelationship": false,
+    "canCreateItem": true,
+    "canDeleteTree": true,
+    "canGetRenditions": true,
+    "canGetACL": true,
+    "canApplyACL": true
+  },
+  "exactACL": true,
+  "exampleExtension": {
+    "objectId": "189",
+    "name": "test folder"
+  }
+}

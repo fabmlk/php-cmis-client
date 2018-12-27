@@ -159,6 +159,9 @@ class Document extends AbstractFileableCmisObject implements DocumentInterface
 
         $this->getBinding()->getVersioningService()->checkOut($this->getRepositoryId(), $newObjectId);
 
+        // remove original version from cache, the path and a few versioning properties are not valid anymore
+        $this->getSession()->removeObjectFromCache($this);
+
         if ($newObjectId === null) {
             return null;
         }

@@ -16,7 +16,6 @@ use Dkd\PhpCmis\Enum\BindingType;
 use Dkd\PhpCmis\Exception\CmisInvalidArgumentException;
 use Dkd\PhpCmis\Exception\CmisRuntimeException;
 use Dkd\PhpCmis\SessionParameter;
-use Doctrine\Common\Cache\Cache;
 use GuzzleHttp\ClientInterface;
 
 /**
@@ -27,15 +26,16 @@ class CmisBindingsHelper
 {
     const SPI_OBJECT = 'dkd.phpcmis.binding.spi.object';
     const TYPE_DEFINITION_CACHE = 'dkd.phpcmis.binding.typeDefinitionCache';
+    const REPOSITORY_INFO_CACHE = 'dkd.phpcmis.binding.repositoryInfoCache';
 
     /**
      * @param array $parameters
-     * @param Cache|null $typeDefinitionCache
+     * @param TypeDefinitionCacheInterface|null $typeDefinitionCache
      * @return CmisBindingInterface
      */
     public function createBinding(
         array $parameters,
-        Cache $typeDefinitionCache = null
+        TypeDefinitionCacheInterface $typeDefinitionCache = null
     ) {
         if (count($parameters) === 0) {
             throw new CmisRuntimeException('Session parameters must be set!');
@@ -217,7 +217,7 @@ class CmisBindingsHelper
      * Returns the type definition cache from the session.
      *
      * @param BindingSessionInterface $session
-     * @return Cache
+     * @return TypeDefinitionCacheInterface
      * @throws CmisRuntimeException Exception is thrown if cache instance could not be initialized.
      */
     public function getTypeDefinitionCache(BindingSessionInterface $session)
@@ -227,12 +227,13 @@ class CmisBindingsHelper
             return $cache;
         }
 
-        $className = $session->get(SessionParameter::TYPE_DEFINITION_CACHE_CLASS);
+        $innerPool = $session->get(SessionParameter::PSR6_TYPE_DEFINITION_CACHE_OBJECT);
         try {
-            $cache = new $className();
+            $cache = new TypeDefinitionCache($innerPool);
+            $cache->initialize($session);
         } catch (\Exception $exception) {
             throw new CmisRuntimeException(
-                sprintf('Could not create object of type "%s"!', $className),
+                sprintf('Could not create type definition cache with an object of type "%s"!', get_class($innerPool)),
                 null,
                 $exception
             );
@@ -240,5 +241,16 @@ class CmisBindingsHelper
         $session->put(self::TYPE_DEFINITION_CACHE, $cache);
 
         return $cache;
+    }
+
+    /**
+     * Returns the repository info cache from the session.
+     *
+     * @param BindingSessionInterface $session
+     * @return RepositoryInfoCache
+     */
+    public function getRepositoryInfoCache(BindingSessionInterface $session)
+    {
+        return $session->get(self::REPOSITORY_INFO_CACHE);
     }
 }

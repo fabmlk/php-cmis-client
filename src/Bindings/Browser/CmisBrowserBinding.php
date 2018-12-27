@@ -20,10 +20,13 @@ use Dkd\PhpCmis\ObjectServiceInterface;
 use Dkd\PhpCmis\PolicyServiceInterface;
 use Dkd\PhpCmis\RelationshipServiceInterface;
 use Dkd\PhpCmis\RepositoryServiceInterface;
+use Dkd\PhpCmis\SessionParameter;
 use Dkd\PhpCmis\VersioningServiceInterface;
 
 /**
  * Base class for all Browser Binding client services.
+ * This class corresponds to org.apache.chemistry.opencmis.client.bindings.spi.browser.CmisBrowserBindingSpi
+ * in Java OpenCMIS.
  */
 class CmisBrowserBinding implements CmisInterface
 {
@@ -189,7 +192,7 @@ class CmisBrowserBinding implements CmisInterface
      */
     public function clearAllCaches()
     {
-        // TODO: Implement clearAllCaches() method.
+        $this->session->remove(SessionParameter::REPOSITORY_URL_CACHE);
     }
 
     /**
@@ -200,7 +203,9 @@ class CmisBrowserBinding implements CmisInterface
      */
     public function clearRepositoryCache($repositoryId)
     {
-        // TODO: Implement clearRepositoryCache() method.
+        if (null !== $repositoryUrlCache = $this->session->get(SessionParameter::REPOSITORY_URL_CACHE)) {
+            $repositoryUrlCache->removeRepository($repositoryId);
+        }
     }
 
     /**
@@ -208,6 +213,6 @@ class CmisBrowserBinding implements CmisInterface
      */
     public function close()
     {
-        // TODO: Implement close() method.
+        // no-op for Browser Binding
     }
 }

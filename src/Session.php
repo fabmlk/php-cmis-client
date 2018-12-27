@@ -12,6 +12,12 @@ namespace Dkd\PhpCmis;
 
 use Dkd\PhpCmis\Bindings\CmisBindingInterface;
 use Dkd\PhpCmis\Bindings\CmisBindingsHelper;
+use Dkd\PhpCmis\Bindings\TypeDefinitionCacheInterface;
+use Dkd\PhpCmis\Cache\Cache;
+use Dkd\PhpCmis\Cache\CacheInterface;
+use Dkd\PhpCmis\Enum\UnfileObject;
+use Dkd\PhpCmis\Exception\CmisConstraintException;
+use Psr\Cache\CacheItemPoolInterface;
 use Dkd\PhpCmis\CmisObject\CmisObjectInterface;
 use Dkd\PhpCmis\Data\AceInterface;
 use Dkd\PhpCmis\Data\AclInterface;
@@ -43,10 +49,8 @@ use Dkd\PhpCmis\Exception\IllegalStateException;
 use Dkd\PhpCmis\Paging\AbstractPageFetcher;
 use Dkd\PhpCmis\Paging\CollectionIterable;
 use Dkd\PhpCmis\Paging\Page;
-use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\Common\Cache\Cache;
-use Doctrine\Common\Cache\CacheProvider;
 use GuzzleHttp\Stream\StreamInterface;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 /**
  * Class Session
@@ -59,7 +63,7 @@ class Session implements SessionInterface
     protected $binding;
 
     /**
-     * @var Cache
+     * @var CacheInterface
      */
     protected $cache;
 
@@ -89,14 +93,22 @@ class Session implements SessionInterface
     protected $parameters = [];
 
     /**
-     * @var Cache
+     * @var TypeDefinitionCacheInterface
      */
     protected $typeDefinitionCache;
 
     /**
-     * @var Cache
+     * This cache is only used locally to speed up the conversion
+     * from a TypeDefinition to its specific object type.
+     * This cache is not very important as type definitions are cached,
+     * thus, this cache is not shared across requests as in Java.
+     * In Java a LinkedHashMap is used which is a perfect
+     * fit for a PHP associative array.
+     * Also, it is unbounded unlike Java's implementation.
+     *
+     * @var ObjectTypeInterface[]
      */
-    protected $objectTypeCache;
+    protected $objectTypeCache = [];
 
     /**
      * @var Updatability[]
@@ -109,11 +121,15 @@ class Session implements SessionInterface
     protected static $createAndCheckoutUpdatability = [];
 
     /**
+     * @var bool
+     */
+    protected $cachePathOmit;
+
+    /**
      * @param array $parameters
      * @param ObjectFactoryInterface|null $objectFactory
-     * @param Cache|null $cache
-     * @param Cache|null $typeDefinitionCache
-     * @param Cache|null $objectTypeCache
+     * @param CacheInterface|null $cache
+     * @param TypeDefinitionCacheInterface|null $typeDefinitionCache
      * @param CmisBindingsHelper|null $cmisBindingHelper
      * @throws CmisInvalidArgumentException
      * @throws IllegalStateException
@@ -121,9 +137,8 @@ class Session implements SessionInterface
     public function __construct(
         array $parameters,
         ObjectFactoryInterface $objectFactory = null,
-        Cache $cache = null,
-        Cache $typeDefinitionCache = null,
-        Cache $objectTypeCache = null,
+        CacheInterface $cache = null,
+        TypeDefinitionCacheInterface $typeDefinitionCache = null,
         CmisBindingsHelper $cmisBindingHelper = null
     ) {
         if (empty($parameters)) {
@@ -131,11 +146,8 @@ class Session implements SessionInterface
         }
 
         $this->parameters = $parameters;
-        $this->objectFactory = $objectFactory === null ? $this->createObjectFactory() : $objectFactory;
-        $this->cache = $cache === null ? $this->createCache() : $cache;
-        $this->typeDefinitionCache = $typeDefinitionCache === null ? $this->createCache() : $typeDefinitionCache;
-        $this->objectTypeCache = $objectTypeCache === null ? $this->createCache() : $objectTypeCache;
-        $this->cmisBindingHelper = $cmisBindingHelper === null ? new CmisBindingsHelper() : $cmisBindingHelper;
+        $this->objectFactory = $objectFactory ?? $this->createObjectFactory();
+        $this->cmisBindingHelper = $cmisBindingHelper ?? new CmisBindingsHelper();
 
         $this->defaultContext = new OperationContext();
         $this->defaultContext->setCacheEnabled(true);
@@ -163,6 +175,13 @@ class Session implements SessionInterface
             Updatability::cast(Updatability::READWRITE),
             Updatability::cast(Updatability::WHENCHECKEDOUT)
         ];
+
+        // this assignment must be done after getting the repository info
+        // as cache initialization will make use of the repository ID
+        $this->cache = $cache ?? $this->createCache($parameters);
+        $this->typeDefinitionCache = $typeDefinitionCache;
+
+        $this->cachePathOmit = $parameters[SessionParameter::CACHE_PATH_OMIT] ?? false;
     }
 
     /**
@@ -208,56 +227,28 @@ class Session implements SessionInterface
     }
 
     /**
-     * Create a cache instance based on the given session parameter SessionParameter::CACHE_CLASS.
-     * If no session parameter SessionParameter::CACHE_CLASS is defined, the default Cache implementation will be used.
+     * Create a cache instance based on the given session parameter SessionParameter::PSR6_CACHE_OBJECT.
+     * If unset or not an instance of CacheItemPoolInterface, defaults to ArrayAdapter.
      *
-     * @return Cache
-     * @throws \InvalidArgumentException
+     * @param array $parameters
+     * @return CacheInterface
      */
-    protected function createCache()
+    protected function createCache(array $parameters)
     {
-        try {
-            if (isset($this->parameters[SessionParameter::CACHE_CLASS])) {
-                $cache = new $this->parameters[SessionParameter::CACHE_CLASS];
-            } else {
-                $cache = $this->createDefaultCacheInstance();
-            }
-
-            if (!($cache instanceof CacheProvider)) {
-                throw new \RuntimeException(
-                    sprintf(
-                        'Class %s does not subclass %s!',
-                        get_class($cache),
-                        CacheProvider::class
-                    ),
-                    1408354124
-                );
-            }
-
-            return $cache;
-        } catch (\Exception $exception) {
-            throw new CmisInvalidArgumentException(
-                'Unable to create cache: ' . $exception,
-                1408354123
-            );
+        $pool = $parameters[SessionParameter::PSR6_CACHE_OBJECT] ?? null;
+        if (!$pool instanceof CacheItemPoolInterface) {
+            $pool = new ArrayAdapter();
         }
-    }
+        $cache = new Cache($pool);
+        $cache->initialize($this, $this->parameters);
 
-    /**
-     * Returns an instance of the Doctrine ArrayCache.
-     * This methods is primarily required for unit testing.
-     *
-     * @return CacheProvider
-     */
-    protected function createDefaultCacheInstance()
-    {
-        return new ArrayCache();
+        return $cache;
     }
 
     /**
      * Get the cache instance
      *
-     * @return CacheProvider
+     * @return CacheInterface
      */
     public function getCache()
     {
@@ -326,7 +317,9 @@ class Session implements SessionInterface
      */
     public function clear()
     {
-        $this->getCache()->flushAll();
+        $this->getCache()->clear();
+        $this->objectTypeCache = [];
+        $this->getBinding()->clearAllCaches();
     }
 
     /**
@@ -737,6 +730,32 @@ class Session implements SessionInterface
     }
 
     /**
+     * Deletes a folder and all subfolders.
+     *
+     * @param ObjectIdInterface $folderId
+     * @param bool              $allVersions
+     * @param UnfileObject      $unfile
+     * @param bool              $continueOnFailure
+     * @return string[]|null
+     */
+    public function deleteTree(ObjectIdInterface $folderId, $allVersions, UnfileObject $unfile, $continueOnFailure = false)
+    {
+        $failed = $this->getBinding()->getObjectService()->deleteTree(
+            $this->getRepositoryId(),
+            $folderId->getId(),
+            $allVersions,
+            $unfile,
+            $continueOnFailure
+        );
+
+        if ($failed && !empty($failed->getIds())) {
+            $this->removeObjectFromCache($folderId);
+        }
+
+        return $failed ? $failed->getIds() : null;
+    }
+
+    /**
      * Deletes a type.
      *
      * @param string $typeId the ID of the type to delete
@@ -749,7 +768,7 @@ class Session implements SessionInterface
         }
 
         $this->getBinding()->getRepositoryService()->deleteType($this->getRepositoryId(), $typeId);
-        $this->removeObjectFromCache($this->createObjectId($typeId));
+        $this->removeFromObjectTypeCache($typeId);
     }
 
     /**
@@ -889,13 +908,23 @@ class Session implements SessionInterface
      */
     public function getContentStream(ObjectIdInterface $docId, $streamId = null, $offset = null, $length = null)
     {
-        return $this->getBinding()->getObjectService()->getContentStream(
-            $this->getRepositoryId(),
-            $docId->getId(),
-            $streamId,
-            $offset,
-            $length
-        );
+        try {
+            $contentStream = $this->getBinding()->getObjectService()->getContentStream(
+                $this->getRepositoryId(),
+                $docId->getId(),
+                $streamId,
+                $offset,
+                $length
+            );
+        } catch (CmisConstraintException $e) {
+            // no content stream
+            return null;
+        } catch (CmisObjectNotFoundException $onfe) {
+            $this->removeObjectFromCache($docId);
+            throw $onfe;
+        }
+
+        return $contentStream;
     }
 
     /**
@@ -953,12 +982,13 @@ class Session implements SessionInterface
         // the version series ID form there
         if (null === $versionSeriesId) {
             if ($context->isCacheEnabled()) {
-                $sourceObj = $this->cache->getById($objectId->getId(), $context->getCacheKey());
+                $sourceObj = $this->getCache()->getById($objectId->getId(), $context->getCacheKey());
                 if ($sourceObj instanceof Document) {
                     if (!$this->getTypeDefinition(BaseTypeId::CMIS_DOCUMENT)->isVersionable()) {
                         // if it is not versionable, a getObject() is sufficient
                         return $this->getObject($sourceObj, $context);
                     }
+                    $versionSeriesId = $sourceObj->getVersionSeriesId();
                 }
             }
         }
@@ -973,7 +1003,10 @@ class Session implements SessionInterface
 
         $result = $this->getObjectFactory()->convertObject($objectData, $context);
 
-        $this->cache->save($result->getId(), $context->getCacheKey());
+        // put into cache
+        if ($context->isCacheEnabled()) {
+            $this->getCache()->put($result, $context->getCacheKey());
+        }
 
         // check result
         if (!($result instanceof Document)) {
@@ -1005,16 +1038,16 @@ class Session implements SessionInterface
             $context = $this->getDefaultContext();
         }
 
-        $objectIdString = $objectId->getId();
-        $cacheIdentity = $objectIdString . '|' . $context->getCacheKey();
-
-        if ($this->getCache()->contains($cacheIdentity)) {
-            return $this->getCache()->fetch($cacheIdentity);
+        // ask the cache first
+        if ($context->isCacheEnabled()) {
+            if (null !== $object = $this->getCache()->getById($objectId->getId(), $context->getCacheKey())) {
+                return $object;
+            }
         }
 
         $objectData = $this->getBinding()->getObjectService()->getObject(
             $this->getRepositoryInfo()->getId(),
-            $objectIdString,
+            $objectId->getId(),
             $context->getQueryFilterString(),
             $context->isIncludeAllowableActions(),
             $context->getIncludeRelationships(),
@@ -1029,7 +1062,12 @@ class Session implements SessionInterface
         }
 
         $object = $this->getObjectFactory()->convertObject($objectData, $context);
-        $this->getCache()->save($cacheIdentity, $object);
+
+        // put into cache
+        if ($context->isCacheEnabled()) {
+            $this->getCache()->put($object, $context->getCacheKey());
+        }
+
         return $object;
     }
 
@@ -1057,6 +1095,13 @@ class Session implements SessionInterface
             $context = $this->getDefaultContext();
         }
 
+        // ask the cache first
+        if ($context->isCacheEnabled() && !$this->cachePathOmit) {
+            if (null !== $object = $this->getCache()->getByPath($path, $context->getCacheKey())) {
+                return $object;
+            }
+        }
+
         $objectData = $this->getBinding()->getObjectService()->getObjectByPath(
             $this->getRepositoryInfo()->getId(),
             $path,
@@ -1072,9 +1117,14 @@ class Session implements SessionInterface
             throw new CmisObjectNotFoundException(sprintf('Could not find object for given path "%s".', $path));
         }
 
-        // TODO: Implement cache!
+        $object = $this->getObjectFactory()->convertObject($objectData, $context);
 
-        return $this->getObjectFactory()->convertObject($objectData, $context);
+        // put into cache
+        if ($context->isCacheEnabled()) {
+            $this->getCache()->putPath($path, $object, $context->getCacheKey());
+        }
+
+        return $object;
     }
 
     /**
@@ -1280,13 +1330,12 @@ class Session implements SessionInterface
      */
     public function getTypeDefinition($typeId, $useCache = true)
     {
-        // TODO: Implement cache!
         $typeDefinition = $this->getBinding()->getRepositoryService()->getTypeDefinition(
             $this->getRepositoryId(),
             $typeId
         );
 
-        return $this->convertTypeDefinition($typeDefinition);
+        return $this->convertAndCacheTypeDefinition($typeDefinition);
     }
 
     /**
@@ -1484,18 +1533,11 @@ class Session implements SessionInterface
     /**
      * Removes the given object from the cache.
      *
-     * Note about specific implementation: in order to avoid an over-engineered
-     * taggable cache mechanism and with it, extensive traversal of objects when
-     * creating tags, objects are not tagged in the cache. In addition, objects
-     * are added to the cache with a secondary identification; the context - and
-     * the context is not available here when removing a single object from the
-     * cache. Instead, we opt to simply flush the entire cache and let it refill.
-     *
      * @param ObjectIdInterface $objectId
      */
     public function removeObjectFromCache(ObjectIdInterface $objectId)
     {
-        $this->clear();
+        $this->getCache()->remove($objectId->getId());
     }
 
     /**
@@ -1551,20 +1593,54 @@ class Session implements SessionInterface
      */
     public function updateType(TypeDefinitionInterface $type)
     {
-        // TODO: Implement updateType() method.
+        $updatedType = $this->getBinding()->getRepositoryService()->updateType($this->getRepositoryId(), $type, null);
+        $this->removeFromObjectTypeCache($updatedType->getId());
+
+        return $this->convertTypeDefinition($updatedType);
     }
 
     /**
-     * Converts a type definition into an object type. If the object type is
-     * cached, it returns the cached object. Otherwise it creates an object type
-     * object and puts it into the cache.
+     * Converts a type definition into an object type.
      *
      * @param TypeDefinitionInterface $typeDefinition
      * @return ObjectTypeInterface
      */
     private function convertTypeDefinition(TypeDefinitionInterface $typeDefinition)
     {
-        // TODO: Implement cache. See Java Implementation for example
         return $this->getObjectFactory()->convertTypeDefinition($typeDefinition);
+    }
+
+    /**
+     * Converts a type definition into an object type and caches the result.
+     *
+     * The cache should only be used for type definitions that have been fetched
+     * with getTypeDefinition() because the high level cache should roughly
+     * correspond to the low level type cache. The type definitions returned by
+     * getTypeChildren() and getTypeDescendants() are not cached in the low
+     * level cache and therefore shouldn't be cached here.
+     *
+     * @param TypeDefinitionInterface $typeDefinition
+     * @param bool                    $useCache
+     * @return ObjectTypeInterface
+     */
+    private function convertAndCacheTypeDefinition(TypeDefinitionInterface $typeDefinition, $useCache = true)
+    {
+        if (!$useCache) {
+            $objectType = $this->getObjectFactory()->convertTypeDefinition($typeDefinition);
+            $this->objectTypeCache[$objectType->getId()] = $objectType;
+        } elseif (null === $objectType = ($this->objectTypeCache[$typeDefinition->getId()] ?? null)) {
+            $objectType = $this->getObjectFactory()->convertTypeDefinition($typeDefinition);
+            $this->objectTypeCache[$objectType->getId()] = $objectType;
+        }
+
+        return $objectType;
+    }
+
+    /**
+     * Removes the object type object with the given type ID from the cache.
+     */
+    private function removeFromObjectTypeCache($typeId)
+    {
+        unset($this->objectTypeCache[$typeId]);
     }
 }

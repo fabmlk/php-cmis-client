@@ -11,7 +11,8 @@ namespace Dkd\PhpCmis;
  */
 
 use Dkd\PhpCmis\Bindings\CmisBindingsHelper;
-use Doctrine\Common\Cache\Cache;
+use Dkd\PhpCmis\Bindings\TypeDefinitionCacheInterface;
+use Dkd\PhpCmis\Cache\CacheInterface;
 
 /**
  * Class SessionFactory
@@ -19,17 +20,17 @@ use Doctrine\Common\Cache\Cache;
 class SessionFactory implements SessionFactoryInterface
 {
     /**
-     * @param array $parameters
-     * @param ObjectFactoryInterface|null $objectFactory
-     * @param Cache|null $cache
-     * @param Cache|null $typeDefinitionCache
+     * @param array                             $parameters
+     * @param ObjectFactoryInterface|null       $objectFactory
+     * @param CacheInterface|null               $cache
+     * @param TypeDefinitionCacheInterface|null $typeDefinitionCache
      * @return Session
      */
     public function createSession(
         array $parameters,
         ObjectFactoryInterface $objectFactory = null,
-        Cache $cache = null,
-        Cache $typeDefinitionCache = null
+        CacheInterface $cache = null,
+        TypeDefinitionCacheInterface $typeDefinitionCache = null
     ) {
         $session = new Session($parameters, $objectFactory, $cache, $typeDefinitionCache);
         return $session;
@@ -38,15 +39,15 @@ class SessionFactory implements SessionFactoryInterface
     /**
      * @param array $parameters
      * @param ObjectFactoryInterface|null $objectFactory
-     * @param Cache|null $cache
-     * @param Cache|null $typeDefinitionCache
+     * @param CacheInterface|null $cache
+     * @param TypeDefinitionCacheInterface|null $typeDefinitionCache
      * @return Data\RepositoryInfoInterface[]
      */
     public function getRepositories(
         array $parameters,
         ObjectFactoryInterface $objectFactory = null,
-        Cache $cache = null,
-        Cache $typeDefinitionCache = null
+        CacheInterface $cache = null,
+        TypeDefinitionCacheInterface $typeDefinitionCache = null
     ) {
         $cmisBindingsHelper = new CmisBindingsHelper();
         $binding = $cmisBindingsHelper->createBinding(

@@ -1,0 +1,275 @@
+[{
+  "properties": {
+    "cmis:contentStreamLength": {
+      "id": "cmis:contentStreamLength",
+      "localName": "cmis:contentStreamLength",
+      "displayName": "Content Stream Length",
+      "queryName": "cmis:contentStreamLength",
+      "type": "integer",
+      "cardinality": "single",
+      "value": 8
+    },
+    "cmis:objectTypeId": {
+      "id": "cmis:objectTypeId",
+      "localName": "cmis:objectTypeId",
+      "displayName": "Object Type Id",
+      "queryName": "cmis:objectTypeId",
+      "type": "id",
+      "cardinality": "single",
+      "value": "cmis:document"
+    },
+    "cmis:versionSeriesCheckedOutBy": {
+      "id": "cmis:versionSeriesCheckedOutBy",
+      "localName": "cmis:versionSeriesCheckedOutBy",
+      "displayName": "Version Series Checked Out By",
+      "queryName": "cmis:versionSeriesCheckedOutBy",
+      "type": "string",
+      "cardinality": "single",
+      "value": null
+    },
+    "cmis:isPrivateWorkingCopy": {
+      "id": "cmis:isPrivateWorkingCopy",
+      "localName": "cmis:isPrivateWorkingCopy",
+      "displayName": "Is Private Working Copy",
+      "queryName": "cmis:isPrivateWorkingCopy",
+      "type": "boolean",
+      "cardinality": "single",
+      "value": false
+    },
+    "cmis:versionSeriesCheckedOutId": {
+      "id": "cmis:versionSeriesCheckedOutId",
+      "localName": "cmis:versionSeriesCheckedOutId",
+      "displayName": "Version Series Checked Out Id",
+      "queryName": "cmis:versionSeriesCheckedOutId",
+      "type": "id",
+      "cardinality": "single",
+      "value": null
+    },
+    "cmis:versionSeriesId": {
+      "id": "cmis:versionSeriesId",
+      "localName": "cmis:versionSeriesId",
+      "displayName": "Version Series Id",
+      "queryName": "cmis:versionSeriesId",
+      "type": "id",
+      "cardinality": "single",
+      "value": "187"
+    },
+    "cmis:isLatestVersion": {
+      "id": "cmis:isLatestVersion",
+      "localName": "cmis:isLatestVersion",
+      "displayName": "Is Latest Version",
+      "queryName": "cmis:isLatestVersion",
+      "type": "boolean",
+      "cardinality": "single",
+      "value": true
+    },
+    "cmis:versionLabel": {
+      "id": "cmis:versionLabel",
+      "localName": "cmis:versionLabel",
+      "displayName": "Version Label",
+      "queryName": "cmis:versionLabel",
+      "type": "string",
+      "cardinality": "single",
+      "value": null
+    },
+    "cmis:isVersionSeriesCheckedOut": {
+      "id": "cmis:isVersionSeriesCheckedOut",
+      "localName": "cmis:isVersionSeriesCheckedOut",
+      "displayName": "Is Verison Series Checked Out",
+      "queryName": "cmis:isVersionSeriesCheckedOut",
+      "type": "boolean",
+      "cardinality": "single",
+      "value": false
+    },
+    "cmis:lastModifiedBy": {
+      "id": "cmis:lastModifiedBy",
+      "localName": "cmis:lastModifiedBy",
+      "displayName": "Last Modified By",
+      "queryName": "cmis:lastModifiedBy",
+      "type": "string",
+      "cardinality": "single",
+      "value": "admin"
+    },
+    "cmis:createdBy": {
+      "id": "cmis:createdBy",
+      "localName": "cmis:createdBy",
+      "displayName": "Created By",
+      "queryName": "cmis:createdBy",
+      "type": "string",
+      "cardinality": "single",
+      "value": "admin"
+    },
+    "cmis:isLatestMajorVersion": {
+      "id": "cmis:isLatestMajorVersion",
+      "localName": "cmis:isLatestMajorVersion",
+      "displayName": "Is Latest Major Version",
+      "queryName": "cmis:isLatestMajorVersion",
+      "type": "boolean",
+      "cardinality": "single",
+      "value": true
+    },
+    "cmis:contentStreamId": {
+      "id": "cmis:contentStreamId",
+      "localName": "cmis:contentStreamId",
+      "displayName": "Content Stream Id",
+      "queryName": "cmis:contentStreamId",
+      "type": "id",
+      "cardinality": "single",
+      "value": null
+    },
+    "cmis:name": {
+      "id": "cmis:name",
+      "localName": "cmis:name",
+      "displayName": "Name",
+      "queryName": "cmis:name",
+      "type": "string",
+      "cardinality": "single",
+      "value": "test document"
+    },
+    "cmis:contentStreamMimeType": {
+      "id": "cmis:contentStreamMimeType",
+      "localName": "cmis:contentStreamMimeType",
+      "displayName": "MIME Type",
+      "queryName": "cmis:contentStreamMimeType",
+      "type": "string",
+      "cardinality": "single",
+      "value": "application\/octet-stream"
+    },
+    "cmis:creationDate": {
+      "id": "cmis:creationDate",
+      "localName": "cmis:creationDate",
+      "displayName": "Creation Date",
+      "queryName": "cmis:creationDate",
+      "type": "datetime",
+      "cardinality": "single",
+      "value": 1546767892670
+    },
+    "cmis:secondaryObjectTypeIds": {
+      "id": "cmis:secondaryObjectTypeIds",
+      "localName": "cmis:secondaryObjectTypeIds",
+      "displayName": "Secondary Type Ids",
+      "queryName": "cmis:secondaryObjectTypeIds",
+      "type": "id",
+      "cardinality": "multi",
+      "value": null
+    },
+    "cmis:changeToken": {
+      "id": "cmis:changeToken",
+      "localName": "cmis:changeToken",
+      "displayName": "Change Token",
+      "queryName": "cmis:changeToken",
+      "type": "string",
+      "cardinality": "single",
+      "value": "1546767892670"
+    },
+    "cmis:checkinComment": {
+      "id": "cmis:checkinComment",
+      "localName": "cmis:checkinComment",
+      "displayName": "Checkin Comment",
+      "queryName": "cmis:checkinComment",
+      "type": "string",
+      "cardinality": "single",
+      "value": null
+    },
+    "cmis:objectId": {
+      "id": "cmis:objectId",
+      "localName": "cmis:objectId",
+      "displayName": "Object Id",
+      "queryName": "cmis:objectId",
+      "type": "id",
+      "cardinality": "single",
+      "value": "187"
+    },
+    "cmis:isImmutable": {
+      "id": "cmis:isImmutable",
+      "localName": "cmis:isImmutable",
+      "displayName": "Is Immutable",
+      "queryName": "cmis:isImmutable",
+      "type": "boolean",
+      "cardinality": "single",
+      "value": false
+    },
+    "cmis:isMajorVersion": {
+      "id": "cmis:isMajorVersion",
+      "localName": "cmis:isMajorVersion",
+      "displayName": "Is Major Version",
+      "queryName": "cmis:isMajorVersion",
+      "type": "boolean",
+      "cardinality": "single",
+      "value": true
+    },
+    "cmis:baseTypeId": {
+      "id": "cmis:baseTypeId",
+      "localName": "cmis:baseTypeId",
+      "displayName": "Base Type Id",
+      "queryName": "cmis:baseTypeId",
+      "type": "id",
+      "cardinality": "single",
+      "value": "cmis:document"
+    },
+    "cmis:description": {
+      "id": "cmis:description",
+      "localName": "cmis:description",
+      "displayName": "Description",
+      "queryName": "cmis:description",
+      "type": "string",
+      "cardinality": "single",
+      "value": null
+    },
+    "cmis:contentStreamFileName": {
+      "id": "cmis:contentStreamFileName",
+      "localName": "cmis:contentStreamFileName",
+      "displayName": "Filename",
+      "queryName": "cmis:contentStreamFileName",
+      "type": "string",
+      "cardinality": "single",
+      "value": "temp"
+    },
+    "cmis:lastModificationDate": {
+      "id": "cmis:lastModificationDate",
+      "localName": "cmis:lastModificationDate",
+      "displayName": "Last Modification Date",
+      "queryName": "cmis:lastModificationDate",
+      "type": "datetime",
+      "cardinality": "single",
+      "value": 1546767892670
+    }
+  },
+  "allowableActions": {
+    "canDeleteObject": true,
+    "canUpdateProperties": true,
+    "canGetFolderTree": false,
+    "canGetProperties": true,
+    "canGetObjectRelationships": false,
+    "canGetObjectParents": true,
+    "canGetFolderParent": false,
+    "canGetDescendants": false,
+    "canMoveObject": true,
+    "canDeleteContentStream": true,
+    "canCheckOut": false,
+    "canCancelCheckOut": false,
+    "canCheckIn": false,
+    "canSetContentStream": true,
+    "canGetAllVersions": false,
+    "canAddObjectToFolder": true,
+    "canRemoveObjectFromFolder": true,
+    "canGetContentStream": true,
+    "canApplyPolicy": true,
+    "canGetAppliedPolicies": true,
+    "canRemovePolicy": false,
+    "canGetChildren": false,
+    "canCreateDocument": false,
+    "canCreateFolder": false,
+    "canCreateRelationship": false,
+    "canCreateItem": false,
+    "canDeleteTree": false,
+    "canGetRenditions": false,
+    "canGetACL": true,
+    "canApplyACL": true
+  },
+  "exactACL": true,
+  "exampleExtension": {
+    "objectId": "187",
+    "name": "test document"
+  }
+}]

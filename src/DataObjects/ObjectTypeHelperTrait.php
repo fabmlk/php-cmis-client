@@ -12,6 +12,7 @@ namespace Dkd\PhpCmis\DataObjects;
 
 use Dkd\PhpCmis\Data\ObjectTypeInterface;
 use Dkd\PhpCmis\Enum\BaseTypeId;
+use Dkd\PhpCmis\Session;
 use Dkd\PhpCmis\SessionInterface;
 use Dkd\PhpCmis\TreeInterface;
 
@@ -124,5 +125,26 @@ trait ObjectTypeHelperTrait
     public function getDescendants($depth)
     {
         return $this->getSession()->getTypeDescendants($this->getId(), $depth, true);
+    }
+
+
+    /**
+     * @param Session $session
+     */
+    public function setSession(Session $session)
+    {
+        $this->session = $session;
+    }
+
+    /**
+     * @return array
+     */
+    public function __sleep()
+    {
+        $properties = get_object_vars($this);
+        // discard session property, as noted in AbstractCmisObject::serialize()
+        unset($properties['session']);
+
+        return array_keys($properties);
     }
 }

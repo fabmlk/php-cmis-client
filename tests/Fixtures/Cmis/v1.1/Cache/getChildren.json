@@ -1,0 +1,143 @@
+{
+  "objects": [{
+    "object": {
+      "succinctProperties": {
+        "cmis:isVersionSeriesCheckedOut": false,
+        "cmis:contentStreamLength": 4421,
+        "cmis:lastModifiedBy": "admin",
+        "cmis:objectTypeId": "cmis:document",
+        "cmis:versionSeriesCheckedOutId": null,
+        "cmis:createdBy": "admin",
+        "cmis:name": "70c006ffa19b09da05c9",
+        "cmis:contentStreamMimeType": "application\/octet-stream",
+        "cmis:objectId": "183",
+        "cmis:creationDate": 1546720155791,
+        "cmis:baseTypeId": "cmis:document",
+        "cmis:contentStreamFileName": "README.md",
+        "cmis:lastModificationDate": 1546720155791
+      },
+      "exactACL": true
+    }
+  }, {
+    "object": {
+      "succinctProperties": {
+        "cmis:isVersionSeriesCheckedOut": false,
+        "cmis:contentStreamLength": 4421,
+        "cmis:lastModifiedBy": "admin",
+        "cmis:objectTypeId": "cmis:document",
+        "cmis:versionSeriesCheckedOutId": null,
+        "cmis:createdBy": "admin",
+        "cmis:name": "8213dbd61a37780918b7",
+        "cmis:contentStreamMimeType": "application\/octet-stream",
+        "cmis:objectId": "180",
+        "cmis:creationDate": 1546719703434,
+        "cmis:baseTypeId": "cmis:document",
+        "cmis:contentStreamFileName": "README.md",
+        "cmis:lastModificationDate": 1546719703434
+      },
+      "exactACL": true
+    }
+  }, {
+    "object": {
+      "succinctProperties": {
+        "cmis:isVersionSeriesCheckedOut": false,
+        "cmis:contentStreamLength": 33293,
+        "cmis:lastModifiedBy": "unknown",
+        "cmis:objectTypeId": "ComplexType",
+        "cmis:versionSeriesCheckedOutId": null,
+        "cmis:createdBy": "unknown",
+        "cmis:name": "My_Document-0-0",
+        "cmis:contentStreamMimeType": "text\/plain",
+        "cmis:objectId": "133",
+        "cmis:creationDate": 1546628308420,
+        "cmis:baseTypeId": "cmis:document",
+        "cmis:contentStreamFileName": "data.txt",
+        "cmis:lastModificationDate": 1546628308420
+      },
+      "exactACL": true
+    }
+  }, {
+    "object": {
+      "succinctProperties": {
+        "cmis:isVersionSeriesCheckedOut": false,
+        "cmis:contentStreamLength": 33336,
+        "cmis:lastModifiedBy": "unknown",
+        "cmis:objectTypeId": "ComplexType",
+        "cmis:versionSeriesCheckedOutId": null,
+        "cmis:createdBy": "unknown",
+        "cmis:name": "My_Document-0-1",
+        "cmis:contentStreamMimeType": "text\/plain",
+        "cmis:objectId": "134",
+        "cmis:creationDate": 1546628308509,
+        "cmis:baseTypeId": "cmis:document",
+        "cmis:contentStreamFileName": "data.txt",
+        "cmis:lastModificationDate": 1546628308509
+      },
+      "exactACL": true
+    }
+  }, {
+    "object": {
+      "succinctProperties": {
+        "cmis:isVersionSeriesCheckedOut": false,
+        "cmis:contentStreamLength": 33526,
+        "cmis:lastModifiedBy": "unknown",
+        "cmis:objectTypeId": "ComplexType",
+        "cmis:versionSeriesCheckedOutId": null,
+        "cmis:createdBy": "unknown",
+        "cmis:name": "My_Document-0-2",
+        "cmis:contentStreamMimeType": "text\/plain",
+        "cmis:objectId": "135",
+        "cmis:creationDate": 1546628308593,
+        "cmis:baseTypeId": "cmis:document",
+        "cmis:contentStreamFileName": "data.txt",
+        "cmis:lastModificationDate": 1546628308593
+      },
+      "exactACL": true
+    }
+  }, {
+    "object": {
+      "succinctProperties": {
+        "cmis:lastModifiedBy": "unknown",
+        "cmis:objectTypeId": "cmis:folder",
+        "cmis:createdBy": "unknown",
+        "cmis:name": "My_Folder-0-0",
+        "cmis:objectId": "101",
+        "cmis:creationDate": 1546628304940,
+        "cmis:baseTypeId": "cmis:folder",
+        "cmis:lastModificationDate": 1546628304940
+      },
+      "exactACL": true
+    }
+  }, {
+    "object": {
+      "succinctProperties": {
+        "cmis:lastModifiedBy": "unknown",
+        "cmis:objectTypeId": "cmis:folder",
+        "cmis:createdBy": "unknown",
+        "cmis:name": "My_Folder-0-1",
+        "cmis:objectId": "117",
+        "cmis:creationDate": 1546628307285,
+        "cmis:baseTypeId": "cmis:folder",
+        "cmis:lastModificationDate": 1546628307285
+      },
+      "exactACL": true
+    }
+  }, {
+    "object": {
+      "succinctProperties": {
+        "cmis:lastModifiedBy": "admin",
+        "cmis:objectTypeId": "cmis:folder",
+        "cmis:createdBy": "admin",
+        "cmis:name": "test folder",
+        "cmis:objectId": "189",
+        "cmis:creationDate": 1546770719368,
+        "cmis:baseTypeId": "cmis:folder",
+        "cmis:lastModificationDate": 1546770719368
+      },
+      "exactACL": true
+    }
+  }
+  ],
+  "hasMoreItems": false,
+  "numItems": 8
+}

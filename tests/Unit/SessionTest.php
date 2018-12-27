@@ -12,16 +12,20 @@ namespace Dkd\PhpCmis\Test\Unit;
 
 use Dkd\PhpCmis;
 use Dkd\PhpCmis\Bindings\CmisBindingsHelper;
+use Dkd\PhpCmis\Cache\Cache;
 use Dkd\PhpCmis\ObjectFactoryInterface;
 use Dkd\PhpCmis\Session;
 use Dkd\PhpCmis\SessionParameter;
 use PHPUnit_Framework_MockObject_MockObject;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 /**
  * Class SessionTest
  */
 class SessionTest extends \PHPUnit_Framework_TestCase
 {
+    use SessionHelperTrait;
+
     public function testConstructorThrowsExceptionIfNoParametersGiven()
     {
         $this->setExpectedException(
@@ -32,31 +36,6 @@ class SessionTest extends \PHPUnit_Framework_TestCase
         new Session([]);
     }
 
-    /**
-     * @return CmisBindingsHelper|PHPUnit_Framework_MockObject_MockObject
-     */
-    protected function getBindingsHelperMock()
-    {
-        $repositoryServiceMock = $this->getMockBuilder(
-            '\\Dkd\\PhpCmis\\RepositoryServiceInterface'
-        )->getMockForAbstractClass();
-        $relationshipServiceMock = $this->getMockBuilder(
-            '\\Dkd\\PhpCmis\\RelationshipServiceInterface'
-        )->getMockForAbstractClass();
-        $bindingMock = $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\CmisBindingInterface')->setMethods(
-            ['getRepositoryService', 'getRelationshipService']
-        )->getMockForAbstractClass();
-        $bindingMock->expects($this->any())->method('getRepositoryService')->willReturn($repositoryServiceMock);
-        $bindingMock->expects($this->any())->method('getRelationshipService')->willReturn($relationshipServiceMock);
-        /** @var CmisBindingsHelper|PHPUnit_Framework_MockObject_MockObject $bindingsHelperMock */
-        $bindingsHelperMock = $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\CmisBindingsHelper')->setMethods(
-            ['createBinding']
-        )->getMockForAbstractClass();
-        $bindingsHelperMock->expects($this->any())->method('createBinding')->willReturn($bindingMock);
-
-        return $bindingsHelperMock;
-    }
-
     public function testObjectFactoryIsSetToDefaultObjectFactoryWhenNoObjectFactoryIsGivenOrDefined()
     {
         $session = new Session(
@@ -64,8 +43,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
             null,
             null,
             null,
-            null,
-            $this->getBindingsHelperMock()
+            $this->getBindingsHelperMock('foo')
         );
         $this->assertInstanceOf('\\Dkd\\PhpCmis\\ObjectFactory', $session->getObjectFactory());
     }
@@ -79,8 +57,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
             $dummyObjectFactory,
             null,
             null,
-            null,
-            $this->getBindingsHelperMock()
+            $this->getBindingsHelperMock('foo')
         );
 
         $this->assertSame($dummyObjectFactory, $session->getObjectFactory());
@@ -97,8 +74,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
             null,
             null,
             null,
-            null,
-            $this->getBindingsHelperMock()
+            $this->getBindingsHelperMock('foo')
         );
 
         $this->assertEquals($objectFactory, $session->getObjectFactory());
@@ -146,8 +122,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
             null,
             null,
             null,
-            null,
-            $this->getBindingsHelperMock()
+            $this->getBindingsHelperMock('foo')
         );
     }
 
@@ -178,62 +153,75 @@ class SessionTest extends \PHPUnit_Framework_TestCase
             null,
             null,
             null,
-            null,
-            $this->getBindingsHelperMock()
+            $this->getBindingsHelperMock('foo')
         );
-        $this->assertInstanceOf('\\Doctrine\\Common\\Cache\\Cache', $session->getCache());
+        $this->assertInstanceOf('\\Dkd\\PhpCmis\\Cache\\Cache', $session->getCache());
     }
 
     public function testCacheIsSetToCacheInstanceGivenAsMethodParameter()
     {
-        /** @var \Doctrine\Common\Cache\Cache $dummyCache */
-        $dummyCache = $this->getMockForAbstractClass('\\Doctrine\\Common\\Cache\\Cache');
+        /** @var \Dkd\PhpCmis\Cache\Cache $dummyCache */
+        $dummyCache = $this->getMockForAbstractClass('\\Dkd\\PhpCmis\\Cache\\CacheInterface');
         $session = new Session(
             [SessionParameter::REPOSITORY_ID => 'foo'],
             null,
             $dummyCache,
             null,
-            null,
-            $this->getBindingsHelperMock()
+            $this->getBindingsHelperMock('foo')
         );
         $this->assertSame($dummyCache, $session->getCache());
     }
 
     public function testCacheIsSetToCacheDefinedInParametersArray()
     {
-        /** @var \Doctrine\Common\Cache\Cache $dummyCache */
-        $cache = $this->getMockForAbstractClass('\\Doctrine\\Common\\Cache\\CacheProvider');
+        $pool = $this->getMockForAbstractClass('\\Psr\\Cache\\CacheItemPoolInterface');
+        $cache = new Cache($pool);
         $session = new Session(
-            [SessionParameter::REPOSITORY_ID => 'foo', SessionParameter::CACHE_CLASS => get_class($cache)],
+            [SessionParameter::REPOSITORY_ID => 'foo', SessionParameter::PSR6_CACHE_OBJECT => $pool],
             null,
             null,
             null,
-            null,
-            $this->getBindingsHelperMock()
+            $this->getBindingsHelperMock('foo')
         );
+        $cache->initialize($session, array());
         $this->assertEquals($cache, $session->getCache());
     }
 
-    public function testExceptionIsThrownIfConfiguredCacheDoesNotImplementCacheInterface()
-    {
-        $this->setExpectedException(
-            '\\Dkd\\PhpCmis\\Exception\\CmisInvalidArgumentException',
-            '',
-            1408354123
-        );
+    // No longer applicable
+//    public function testExceptionIsThrownIfConfiguredCacheDoesNotImplementCacheInterface()
+//    {
+//        $this->setExpectedException(
+//            '\\Dkd\\PhpCmis\\Exception\\CmisInvalidArgumentException',
+//            '',
+//            1408354123
+//        );
+//        $object = $this->getMock('\\stdClass');
+//        new Session(
+//            [SessionParameter::CACHE_CLASS => get_class($object)]
+//        );
+//    }
 
-        $object = $this->getMock('\\stdClass');
-        new Session(
-            [SessionParameter::CACHE_CLASS => get_class($object)]
+    public function testCacheUsesDefaultPsr6PoolIfNoneProvided()
+    {
+        $session = new Session(
+            [
+                SessionParameter::REPOSITORY_ID => 'foo'
+            ],
+            null,
+            null,
+            null,
+            $this->getBindingsHelperMock('foo')
         );
+        $poolProperty = (new \ReflectionClass($session->getCache()))->getProperty('pool');
+        $poolProperty->setAccessible(true);
+        $this->assertEquals(new ArrayAdapter(), $poolProperty->getValue($session->getCache()));
     }
 
     public function testGetRelationships()
     {
-        $bindingsMock = $this->getBindingsHelperMock();
+        $bindingsMock = $this->getBindingsHelperMock('foo');
         $session = new Session(
             [SessionParameter::REPOSITORY_ID => 'foo'],
-            null,
             null,
             null,
             null,

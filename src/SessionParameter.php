@@ -96,14 +96,17 @@ class SessionParameter
     // --- cache ---
 
 //    const CACHE_SIZE_OBJECTS = 'dkd.phpcmis.cache.objects.size';
-//    const CACHE_TTL_OBJECTS = 'dkd.phpcmis.cache.objects.ttl';
+    const CACHE_TTL_OBJECTS = 'dkd.phpcmis.cache.objects.ttl';
 //    const CACHE_SIZE_PATHTOID = 'dkd.phpcmis.cache.pathtoid.size';
-//    const CACHE_TTL_PATHTOID = 'dkd.phpcmis.cache.pathtoid.ttl';
-//    const CACHE_PATH_OMIT = 'dkd.phpcmis.cache.path.omit';
+    const CACHE_TTL_PATHTOID = 'dkd.phpcmis.cache.pathtoid.ttl';
+    const CACHE_TTL_REPOSITORIES = 'dkd.phpcmis.cache.repositories.ttl';
+    const CACHE_TTL_TYPES = 'dkd.phpcmis.cache.types.ttl';
 
-    const CACHE_SIZE_REPOSITORIES = 'dkd.phpcmis.binding.cache.repositories.size';
-    const CACHE_SIZE_TYPES = 'dkd.phpcmis.binding.cache.types.size';
-    const CACHE_SIZE_LINKS = 'dkd.phpcmis.binding.cache.links.size';
+    const CACHE_PATH_OMIT = 'dkd.phpcmis.cache.path.omit';
+
+//    const CACHE_SIZE_REPOSITORIES = 'dkd.phpcmis.binding.cache.repositories.size';
+//    const CACHE_SIZE_TYPES = 'dkd.phpcmis.binding.cache.types.size';
+//    const CACHE_SIZE_LINKS = 'dkd.phpcmis.binding.cache.links.size';
 
     // --- session control ---
 
@@ -112,8 +115,15 @@ class SessionParameter
 //    const LOCALE_VARIANT = 'dkd.phpcmis.locale.variant';
 
     const OBJECT_FACTORY_CLASS = 'dkd.phpcmis.objectfactory.classname';
-    const CACHE_CLASS = 'dkd.phpcmis.cache.classname';
-    const TYPE_DEFINITION_CACHE_CLASS = 'dkd.phpcmis.cache.types.classname';
+//    const CACHE_CLASS = 'dkd.phpcmis.cache.classname';
+//    const TYPE_DEFINITION_CACHE_CLASS = 'dkd.phpcmis.cache.types.classname';
+    // the instance used by the object cache
+    const PSR6_CACHE_OBJECT = 'dkd.phpcmis.cache.psr6.object';
+    // the instance used by the repository info cache
+    const PSR6_REPOSITORY_INFO_CACHE_OBJECT = 'dkd.phpcmis.cache.psr6.repoinfo.object';
+    // the instance used by the type definition cache
+    const PSR6_TYPE_DEFINITION_CACHE_OBJECT = 'dkd.phpcmis.cache.psr6.types.object';
+
 
     const REPOSITORY_ID = 'dkd.phpcmis.session.repository.id';
     const REPOSITORY_URL_CACHE = 'dkd.phpcmis.binding.browser.repositoryurls';

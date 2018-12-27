@@ -188,11 +188,14 @@ class ObjectService extends AbstractBrowserBindingService implements ObjectServi
             $queryArray['content'] = $contentStream;
         }
 
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
         $newObject = $this->getJsonConverter()->convertObject(
             (array) $this->postJson(
                 $url,
                 $queryArray
-            )
+            ),
+            $typeCache
         );
 
         if ($newObject) {
@@ -252,7 +255,9 @@ class ObjectService extends AbstractBrowserBindingService implements ObjectServi
             $queryArray[Constants::PARAM_VERSIONING_STATE] = (string) $versioningState;
         }
 
-        $newObject = $this->getJsonConverter()->convertObject((array) $this->postJson($url, $queryArray));
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        $newObject = $this->getJsonConverter()->convertObject((array) $this->postJson($url, $queryArray), $typeCache);
 
         return ($newObject === null) ? null : $newObject->getId();
     }
@@ -294,7 +299,9 @@ class ObjectService extends AbstractBrowserBindingService implements ObjectServi
             $extension
         );
 
-        $newObject = $this->getJsonConverter()->convertObject((array) $this->postJson($url, $queryArray));
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        $newObject = $this->getJsonConverter()->convertObject((array) $this->postJson($url, $queryArray), $typeCache);
 
         return ($newObject === null) ? null : $newObject->getId();
     }
@@ -340,7 +347,9 @@ class ObjectService extends AbstractBrowserBindingService implements ObjectServi
             $extension
         );
 
-        $newObject = $this->getJsonConverter()->convertObject((array) $this->postJson($url, $queryArray));
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        $newObject = $this->getJsonConverter()->convertObject((array) $this->postJson($url, $queryArray), $typeCache);
 
         return ($newObject === null) ? null : $newObject->getId();
     }
@@ -407,7 +416,9 @@ class ObjectService extends AbstractBrowserBindingService implements ObjectServi
             $extension
         );
 
-        $newObject = $this->getJsonConverter()->convertObject((array) $this->postJson($url, $queryArray));
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        $newObject = $this->getJsonConverter()->convertObject((array) $this->postJson($url, $queryArray), $typeCache);
 
         return ($newObject === null) ? null : $newObject->getId();
     }
@@ -447,7 +458,9 @@ class ObjectService extends AbstractBrowserBindingService implements ObjectServi
             $url->getQuery()->modify([Constants::PARAM_CHANGE_TOKEN => $changeToken]);
         }
 
-        $newObject = $this->getJsonConverter()->convertObject((array) $this->postJson($url));
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        $newObject = $this->getJsonConverter()->convertObject((array) $this->postJson($url), $typeCache);
 
         // $objectId was passed by reference. The value is changed here to new object id
         $objectId = null;
@@ -659,9 +672,11 @@ class ObjectService extends AbstractBrowserBindingService implements ObjectServi
 
         $responseData = (array) $this->readJson($url);
 
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
         return $this->cache(
             $cacheKey,
-            $this->getJsonConverter()->convertObject($responseData)
+            $this->getJsonConverter()->convertObject($responseData, $typeCache)
         );
     }
 
@@ -737,9 +752,11 @@ class ObjectService extends AbstractBrowserBindingService implements ObjectServi
 
         $responseData = (array) $this->readJson($url);
 
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
         return $this->cache(
             $cacheKey,
-            $this->getJsonConverter()->convertObject($responseData)
+            $this->getJsonConverter()->convertObject($responseData, $typeCache)
         );
     }
 
@@ -788,7 +805,8 @@ class ObjectService extends AbstractBrowserBindingService implements ObjectServi
         $responseData = (array) $this->readJson($url);
 
         if ($this->getSuccinct()) {
-            $objectData = $this->getJsonConverter()->convertSuccinctProperties($responseData);
+            $typeCache = new ClientTypeCache($repositoryId, $this);
+            $objectData = $this->getJsonConverter()->convertSuccinctProperties($responseData, null, $typeCache);
         } else {
             $objectData = $this->getJsonConverter()->convertProperties($responseData);
         }
@@ -878,7 +896,9 @@ class ObjectService extends AbstractBrowserBindingService implements ObjectServi
             ]
         );
 
-        $newObject = $this->getJsonConverter()->convertObject($this->postJson($url));
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        $newObject = $this->getJsonConverter()->convertObject($this->postJson($url), $typeCache);
 
         // $objectId was passed by reference. The value is changed here to new object id
         $objectId = ($newObject === null) ? null : $newObject->getId();
@@ -929,8 +949,11 @@ class ObjectService extends AbstractBrowserBindingService implements ObjectServi
             $url->getQuery()->modify([Constants::PARAM_CHANGE_TOKEN => $changeToken]);
         }
 
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
         $newObject = $this->getJsonConverter()->convertObject(
-            (array) $this->postJson($url, ['content' => $contentStream])
+            (array) $this->postJson($url, ['content' => $contentStream]),
+            $typeCache
         );
 
         // $objectId was passed by reference. The value is changed here to new object id
@@ -976,10 +999,12 @@ class ObjectService extends AbstractBrowserBindingService implements ObjectServi
             $url->getQuery()->modify([Constants::PARAM_CHANGE_TOKEN => $changeToken]);
         }
 
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
         $queryArray = $this->convertPropertiesToQueryArray($properties);
         $queryArray[Constants::CONTROL_CMISACTION] = Constants::CMISACTION_UPDATE_PROPERTIES;
         $queryArray[Constants::PARAM_SUCCINCT] = $this->getSuccinct() ? 'true' : 'false';
-        $newObject = $this->getJsonConverter()->convertObject((array) $this->postJson($url, $queryArray));
+        $newObject = $this->getJsonConverter()->convertObject((array) $this->postJson($url, $queryArray), $typeCache);
 
         // $objectId was passed by reference. The value is changed here to new object id
         $objectId = null;

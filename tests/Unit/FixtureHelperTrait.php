@@ -19,6 +19,19 @@ use GuzzleHttp\Psr7\Response;
 trait FixtureHelperTrait
 {
     /**
+     * @param $fixture
+     * @return Response
+     */
+    protected function getResponseFixture($fixture)
+    {
+        $fixtureFilename = dirname(dirname(__FILE__)) . '/Fixtures/' . $fixture;
+        if (!file_exists($fixtureFilename)) {
+            $this->fail(sprintf('Fixture "%s" not found!', $fixtureFilename));
+        }
+        return new Response(200, [], file_get_contents($fixtureFilename));
+    }
+
+    /**
      * Returns the content of a json fixture as array
      *
      * @param string $fixture the path to the json fixture file
@@ -26,17 +39,13 @@ trait FixtureHelperTrait
      */
     protected function getResponseFixtureContentAsArray($fixture)
     {
-        $fixtureFilename = dirname(dirname(__FILE__)) . '/Fixtures/' . $fixture;
-        if (!file_exists($fixtureFilename)) {
-            $this->fail(sprintf('Fixture "%s" not found!', $fixtureFilename));
-        }
-        $response = new Response(200, [], file_get_contents($fixtureFilename));
+        $response = $this->getResponseFixture($fixture);
 
         $result = [];
         try {
             $result = (array) \json_decode($response->getBody(), true);
         } catch (RuntimeException $exception) {
-            $this->fail(sprintf('Fixture "%s" does not contain a valid JSON body!', $fixtureFilename));
+            $this->fail(sprintf('Fixture "%s" does not contain a valid JSON body!', $fixture));
         }
 
         return $result;

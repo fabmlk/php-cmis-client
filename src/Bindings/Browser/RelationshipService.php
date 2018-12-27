@@ -89,6 +89,8 @@ class RelationshipService extends AbstractBrowserBindingService implements Relat
 
         $responseData = (array) $this->readJson($url);
 
-        return $this->getJsonConverter()->convertObjectList($responseData);
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        return $this->getJsonConverter()->convertObjectList($responseData, $typeCache);
     }
 }

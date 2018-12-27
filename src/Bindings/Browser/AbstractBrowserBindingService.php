@@ -492,7 +492,7 @@ abstract class AbstractBrowserBindingService implements LinkAccessInterface
      * @return TypeDefinitionInterface|null
      * @throws CmisInvalidArgumentException if repository id or type id is <code>null</code>
      */
-    protected function getTypeDefinitionInternal($repositoryId, $typeId)
+    public function getTypeDefinitionInternal($repositoryId, $typeId)
     {
         if (empty($repositoryId)) {
             throw new CmisInvalidArgumentException('Repository id must not be empty!');

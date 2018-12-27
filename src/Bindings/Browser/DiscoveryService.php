@@ -78,8 +78,9 @@ class DiscoveryService extends AbstractBrowserBindingService implements Discover
         // $changeLogToken was passed by reference. The value is changed here
         $changeLogToken = $responseData[JSONConstants::JSON_OBJECTLIST_CHANGE_LOG_TOKEN] ?? null;
 
-        // TODO Implement Cache
-        return $this->getJsonConverter()->convertObjectList($responseData);
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        return $this->getJsonConverter()->convertObjectList($responseData, $typeCache);
     }
 
     /**
@@ -140,6 +141,8 @@ class DiscoveryService extends AbstractBrowserBindingService implements Discover
             $url->getQuery()->modify([Constants::PARAM_MAX_ITEMS => (string) $maxItems]);
         }
 
-        return $this->getJsonConverter()->convertQueryResultList((array) $this->postJson($url));
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        return $this->getJsonConverter()->convertQueryResultList((array) $this->postJson($url), $typeCache);
     }
 }

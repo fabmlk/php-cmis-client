@@ -27,7 +27,6 @@ use Dkd\PhpCmis\RelationshipServiceInterface;
 use Dkd\PhpCmis\RepositoryServiceInterface;
 use Dkd\PhpCmis\SessionParameter;
 use Dkd\PhpCmis\VersioningServiceInterface;
-use Doctrine\Common\Cache\Cache;
 
 /**
  * Class CmisBinding
@@ -52,13 +51,13 @@ class CmisBinding implements CmisBindingInterface
     /**
      * @param BindingSessionInterface $session
      * @param array $sessionParameters
-     * @param Cache|null $typeDefinitionCache
+     * @param TypeDefinitionCacheInterface|null $typeDefinitionCache
      * @param BindingsObjectFactoryInterface|null $objectFactory
      */
     public function __construct(
         BindingSessionInterface $session,
         array $sessionParameters,
-        Cache $typeDefinitionCache = null,
+        TypeDefinitionCacheInterface $typeDefinitionCache = null,
         BindingsObjectFactoryInterface $objectFactory = null
     ) {
         if (count($sessionParameters) === 0) {
@@ -75,9 +74,14 @@ class CmisBinding implements CmisBindingInterface
             $this->session->put($key, $value);
         }
 
-        // if ($typeDefinitionCache !== null) {
-        //     @TODO add cache
-        // }
+        // add type definition cache to session
+        if ($typeDefinitionCache !== null) {
+            $session->put(CmisBindingsHelper::TYPE_DEFINITION_CACHE, $typeDefinitionCache);
+            $typeDefinitionCache->initialize($session);
+        }
+
+        // set up caches
+        $this->clearAllCaches();
 
         $this->objectFactory = $objectFactory ?? new BindingsObjectFactory();
         $this->repositoryService = new RepositoryService($this->session);
@@ -88,8 +92,18 @@ class CmisBinding implements CmisBindingInterface
      */
     public function clearAllCaches()
     {
-        throw new \Exception('Not yet implemented!');
-        // TODO: Implement clearAllCaches() method.
+        // In Java, the repository info cache is cleared from garbage collection by recreating
+        // a new instance. This is also that way it is created the first time.
+        // We keep this behavior in PHP even though clearing here does not mean anything as the real cache
+        // is handled by the inner PSR6 pool.
+        $innerRepositoryInfoPool = $this->session->get(SessionParameter::PSR6_REPOSITORY_INFO_CACHE_OBJECT);
+        $this->session->put(CmisBindingsHelper::REPOSITORY_INFO_CACHE, new RepositoryInfoCache($this->session, $innerRepositoryInfoPool));
+
+        $typeDefinitionCache = $this->getCmisBindingsHelper()->getTypeDefinitionCache($this->session);
+        $typeDefinitionCache->removeAll();
+
+        $spi = $this->getCmisBindingsHelper()->getSpi($this->session);
+        $spi->clearAllCaches();
     }
 
     /**
@@ -99,8 +113,14 @@ class CmisBinding implements CmisBindingInterface
      */
     public function clearRepositoryCache($repositoryId)
     {
-        throw new \Exception('Not yet implemented!');
-        // TODO: Implement clearRepositoryCache() method.
+        $repositoryInfoCache = $this->session->get(CmisBindingsHelper::REPOSITORY_INFO_CACHE);
+        $repositoryInfoCache->remove($repositoryId);
+
+        $typeDefinitionCache = $this->session->get(CmisBindingsHelper::TYPE_DEFINITION_CACHE);
+        $typeDefinitionCache->remove($repositoryId);
+
+        $spi = $this->getCmisBindingsHelper()->getSpi($this->session);
+        $spi->clearRepositoryCache($repositoryId);
     }
 
     /**

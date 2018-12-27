@@ -130,7 +130,7 @@ class RepositoryServiceTest extends AbstractBrowserBindingServiceTestCase
         )->getMock();
 
         /** @var  AbstractTypeDefinition|PHPUnit_Framework_MockObject_MockObject $dummyTypeDefinition */
-        $dummyTypeDefinition = $this->getMockBuilder('\\Dkd\\PhpCmis\\ObjectData\\AbstractTypeDefinition')->getMock();
+        $dummyTypeDefinition = $this->getMockBuilder('\\Dkd\\PhpCmis\\Definitions\\TypeDefinitionInterface')->getMock();
         $jsonConverterMock->expects($this->atLeastOnce())->method('convertTypeDefinition')->with(
             $responseData
         )->willReturn($dummyTypeDefinition);
@@ -201,7 +201,10 @@ class RepositoryServiceTest extends AbstractBrowserBindingServiceTestCase
     ) {
         $responseMock = $this->getMockBuilder(Response::class)->disableOriginalConstructor()->getMock();
 
-        $cmisBindingsHelperMock = $this->getMockBuilder(CmisBindingsHelper::class)->getMock();
+        $cmisBindingsHelperMock = $this->getMockBuilder(CmisBindingsHelper::class)
+            ->setMethods(['getTypeDefinitionCache'])
+            ->getMock();
+        $cmisBindingsHelperMock->method('getTypeDefinitionCache')->willReturn($this->getTypeDefinitionCacheMock());
 
         /** @var RepositoryService|PHPUnit_Framework_MockObject_MockObject $repositoryService */
         $repositoryService = $this->getMockBuilder(self::CLASS_TO_TEST)->setConstructorArgs(
@@ -265,7 +268,7 @@ class RepositoryServiceTest extends AbstractBrowserBindingServiceTestCase
         )->getMock();
 
         /** @var  AbstractTypeDefinition|PHPUnit_Framework_MockObject_MockObject $dummyTypeDefinition */
-        $dummyTypeDefinition = $this->getMockBuilder('\\Dkd\\PhpCmis\\ObjectData\\AbstractTypeDefinition')->getMock();
+        $dummyTypeDefinition = $this->getMockBuilder('\\Dkd\\PhpCmis\\Definitions\\TypeDefinitionInterface')->getMock();
         $jsonConverterMock->expects($this->atLeastOnce())->method('convertTypeDefinition')->with(
             $responseData
         )->willReturn($dummyTypeDefinition);

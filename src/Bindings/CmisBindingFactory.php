@@ -14,9 +14,9 @@ use Dkd\PhpCmis\Bindings\Browser\CmisBrowserBinding;
 use Dkd\PhpCmis\Converter\JsonConverter;
 use Dkd\PhpCmis\Exception\CmisInvalidArgumentException;
 use Dkd\PhpCmis\SessionParameter;
-use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\Common\Cache\Cache;
+use Dkd\PhpCmis\SessionParameterDefaults;
 use GuzzleHttp\Client;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 /**
  * Default factory for a CMIS binding instance.
@@ -27,10 +27,10 @@ class CmisBindingFactory
      * Create a browser binding
      *
      * @param array $sessionParameters
-     * @param Cache|null $typeDefinitionCache
+     * @param TypeDefinitionCacheInterface|null $typeDefinitionCache
      * @return CmisBinding
      */
-    public function createCmisBrowserBinding(array $sessionParameters, Cache $typeDefinitionCache = null)
+    public function createCmisBrowserBinding(array $sessionParameters, TypeDefinitionCacheInterface $typeDefinitionCache = null)
     {
         $this->validateCmisBrowserBindingParameters($sessionParameters);
 
@@ -52,12 +52,15 @@ class CmisBindingFactory
      */
     protected function addDefaultSessionParameters(array &$sessionParameters)
     {
-        $sessionParameters[SessionParameter::CACHE_SIZE_REPOSITORIES] = $sessionParameters[SessionParameter::CACHE_SIZE_REPOSITORIES] ?? 10;
-        $sessionParameters[SessionParameter::CACHE_SIZE_TYPES] = $sessionParameters[SessionParameter::CACHE_SIZE_TYPES] ?? 100;
-        $sessionParameters[SessionParameter::CACHE_SIZE_LINKS] = $sessionParameters[SessionParameter::CACHE_SIZE_LINKS] ?? 400;
+//        $sessionParameters[SessionParameter::CACHE_SIZE_REPOSITORIES] = $sessionParameters[SessionParameter::CACHE_SIZE_REPOSITORIES] ?? SessionParameterDefaults::CACHE_SIZE_REPOSITORIES;
+//        $sessionParameters[SessionParameter::CACHE_SIZE_TYPES] = $sessionParameters[SessionParameter::CACHE_SIZE_TYPES] ?? SessionParameterDefaults::CACHE_SIZE_TYPES;
+//        $sessionParameters[SessionParameter::CACHE_SIZE_LINKS] = $sessionParameters[SessionParameter::CACHE_SIZE_LINKS] ?? SessionParameterDefaults::CACHE_SIZE_LINKS;
         $sessionParameters[SessionParameter::HTTP_INVOKER_CLASS] = $sessionParameters[SessionParameter::HTTP_INVOKER_CLASS] ?? Client::class;
         $sessionParameters[SessionParameter::JSON_CONVERTER_CLASS] = $sessionParameters[SessionParameter::JSON_CONVERTER_CLASS] ?? JsonConverter::class;
-        $sessionParameters[SessionParameter::TYPE_DEFINITION_CACHE_CLASS] = $sessionParameters[SessionParameter::TYPE_DEFINITION_CACHE_CLASS] ?? ArrayCache::class;
+
+        $sessionParameters[SessionParameter::PSR6_CACHE_OBJECT] = $sessionParameters[SessionParameter::PSR6_CACHE_OBJECT] ?? new ArrayAdapter();
+        $sessionParameters[SessionParameter::PSR6_REPOSITORY_INFO_CACHE_OBJECT] = $sessionParameters[SessionParameter::PSR6_REPOSITORY_INFO_CACHE_OBJECT] ?? new ArrayAdapter();
+        $sessionParameters[SessionParameter::PSR6_TYPE_DEFINITION_CACHE_OBJECT] = $sessionParameters[SessionParameter::PSR6_TYPE_DEFINITION_CACHE_OBJECT] ?? new ArrayAdapter();
     }
 
     /**

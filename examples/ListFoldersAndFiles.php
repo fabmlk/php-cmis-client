@@ -64,8 +64,9 @@ function printFolderContent(\Dkd\PhpCmis\Data\FolderInterface $folder, $context,
 {
     $i = 0;
     $children = $folder->getChildren($context);
-    $page = $children->skipTo(0)->getPage(2);
-    foreach ($page as $child) {
+    //$page = $children->skipTo(0)->getPage(2);
+    //foreach ($page as $child) {
+    foreach ($children as $child) {
         echo $levelIndention;
         $i++;
         if ($i > 10) {

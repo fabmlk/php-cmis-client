@@ -1,10 +1,4 @@
 <?php
-/**
- * Ce fichier fait partie du package Tms.
- *
- *  Pour les informations complètes de copyright et de licence,
- *  veuillez vous référer au fichier LICENSE distribué avec ce code source.
- */
 
 namespace Dkd\PhpCmis;
 

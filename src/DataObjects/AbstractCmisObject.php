@@ -38,12 +38,13 @@ use Dkd\PhpCmis\Exception\IllegalStateException;
 use Dkd\PhpCmis\ObjectFactoryInterface;
 use Dkd\PhpCmis\OperationContextInterface;
 use Dkd\PhpCmis\PropertyIds;
+use Dkd\PhpCmis\Session;
 use Dkd\PhpCmis\SessionInterface;
 
 /**
  * Class AbstractCmisObject
  */
-abstract class AbstractCmisObject implements CmisObjectInterface
+abstract class AbstractCmisObject implements CmisObjectInterface, \Serializable
 {
     /**
      * @var SessionInterface
@@ -886,6 +887,71 @@ abstract class AbstractCmisObject implements CmisObjectInterface
     {
         if ($this->getRefreshTimestamp() < ((round(microtime(true) * 1000)) - (integer) $durationInMillis)) {
             $this->refresh();
+        }
+    }
+
+    /**
+     * Mainly used for post-deserialization to inject
+     * the current session.
+     *
+     * @param Session $session
+     */
+    public function refreshSession(Session $session)
+    {
+        $this->session = $session;
+        $this->objectType->setSession($session);
+    }
+
+    /**
+     * An instance of this object is not straightforward to serialize.
+     * Firt we have to discard the $session property as we don't want
+     * to keep its state and should contain external references
+     * (from parameters HTTP_INVOKER_OBJECT, PSR6_CACHE_OBJECT etc...).
+     * Next we have to serialize $objectType property which also keeps a
+     * reference to the session. This is taken care of in the __sleep() method
+     * of ObjectTypeHelperTrait.
+     * All properties are serialize()'d individually and stored in
+     * an associative array.
+     * Finally, json_encode() is used to serialize this associative array
+     * instead of serialize() as nested serialization is error-prone
+     * due to the way PHP handle same-references.
+     *
+     * @return string
+     * @throws \ErrorException
+     */
+    public function serialize()
+    {
+        $properties = get_object_vars($this);
+        // discard the session
+        unset($properties['session']);
+        // serialize all the properties (throws on error)
+        $serializedProperties = array_map('serialize', $properties);
+        // serialize as JSON-encoded
+        if (false === $serialized = json_encode($serializedProperties)) {
+            throw new \ErrorException(json_last_error_msg());
+        }
+
+        return $serialized;
+    }
+
+    /**
+     * To complete unserialization process, refreshSession()
+     * should be called manually before any use of this object.
+     *
+     * @param string $serialized
+     *
+     * @throws \ErrorException
+     */
+    public function unserialize($serialized)
+    {
+        if (false === $properties = json_decode($serialized, true)) {
+            throw new \ErrorException(json_last_error_msg());
+        }
+        foreach($properties as $property => $value) {
+            // unserialize does not throw on error, do it manually
+            if (false === $this->$property = unserialize($value, ['allowed_classes' => true])) {
+                throw new \ErrorException(error_get_last()['message']);
+            }
         }
     }
 }

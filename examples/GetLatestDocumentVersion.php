@@ -10,35 +10,9 @@ if (!is_file(__DIR__ . '/conf/Configuration.php')) {
     require_once(__DIR__ . '/conf/Configuration.php');
 }
 
-$httpInvoker = new \GuzzleHttp\Client(
-    [
-        'auth' => [
-            CMIS_BROWSER_USER,
-            CMIS_BROWSER_PASSWORD
-        ]
-    ]
-);
+require_once 'CreateDocument.php';
 
-$parameters = [
-    \Dkd\PhpCmis\SessionParameter::BINDING_TYPE => \Dkd\PhpCmis\Enum\BindingType::BROWSER,
-    \Dkd\PhpCmis\SessionParameter::BROWSER_URL => CMIS_BROWSER_URL,
-    \Dkd\PhpCmis\SessionParameter::BROWSER_SUCCINCT => false,
-    \Dkd\PhpCmis\SessionParameter::HTTP_INVOKER_OBJECT => $httpInvoker,
-];
-
-$sessionFactory = new \Dkd\PhpCmis\SessionFactory();
-
-// If no repository id is defined use the first repository
-if (CMIS_REPOSITORY_ID === null) {
-    $repositories = $sessionFactory->getRepositories($parameters);
-    $parameters[\Dkd\PhpCmis\SessionParameter::REPOSITORY_ID] = $repositories[0]->getId();
-} else {
-    $parameters[\Dkd\PhpCmis\SessionParameter::REPOSITORY_ID] = CMIS_REPOSITORY_ID;
-}
-
-$session = $sessionFactory->createSession($parameters);
-
-$doc = $session->getObjectByPath('/User Homes/mjackson/toto');
+$doc = $session->getObjectByPath('/Demo Object');
 echo 'Current Id: ' . $doc->getId() . PHP_EOL;
 
 $objectIdReturned = $doc->setContentStream(

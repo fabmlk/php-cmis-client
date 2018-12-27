@@ -47,4 +47,27 @@ trait ReflectionHelperTrait
         $property->setAccessible(true);
         $property->setValue($object, $value);
     }
+
+    /**
+     * Helper function that could recursively set to null protected properties matching a given class
+     * by creating a reflection class.
+     *
+     * @param $object
+     * @param $propertyName
+     */
+    protected function unsetProtectedPropertyObjectRecursive(&$object, $propertyClass)
+    {
+        $reflection = new \ReflectionObject($object);
+        foreach($reflection->getProperties() as $property) {
+            $property->setAccessible(true);
+            $value = $property->getValue($object);
+            if (is_object($value)) {
+                if (get_class($value) === $propertyClass) {
+                    $property->setValue($object, null);
+                } else {
+                    $this->unsetProtectedPropertyObjectRecursive($value, $propertyClass);
+                }
+            }
+        }
+    }
 }

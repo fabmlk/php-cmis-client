@@ -14,7 +14,6 @@ use Dkd\PhpCmis\Bindings\Browser\NavigationService;
 use Dkd\PhpCmis\Constants;
 use Dkd\PhpCmis\Data\AceInterface;
 use Dkd\PhpCmis\Data\DocumentInterface;
-use Dkd\PhpCmis\Data\FailedToDeleteDataInterface;
 use Dkd\PhpCmis\Data\FileableCmisObjectInterface;
 use Dkd\PhpCmis\Data\FolderInterface;
 use Dkd\PhpCmis\Data\ItemInterface;
@@ -272,23 +271,11 @@ class Folder extends AbstractFileableCmisObject implements FolderInterface
      *     perform this operation even if deletion of a child- or descendant-object in the specified folder cannot be
      *     deleted. If <code>false</code>, then the repository SHOULD abort this method when it fails to
      *     delete a single child object or descendant object.
-     * @return FailedToDeleteDataInterface A list of identifiers of objects in the folder tree that were not deleted.
+     * @return string[]|null A list of identifiers of objects in the folder tree that were not deleted.
      */
     public function deleteTree($allVersions, UnfileObject $unfile, $continueOnFailure = true)
     {
-        $failed = $this->getBinding()->getObjectService()->deleteTree(
-            $this->getRepositoryId(),
-            $this->getId(),
-            $allVersions,
-            $unfile,
-            $continueOnFailure
-        );
-
-        if (count($failed->getIds()) === 0) {
-            $this->getSession()->removeObjectFromCache($this);
-        }
-
-        return $failed;
+        return $this->getSession()->deleteTree($this, $allVersions, $unfile, $continueOnFailure);
     }
 
     /**
@@ -359,7 +346,7 @@ class Folder extends AbstractFileableCmisObject implements FolderInterface
     /**
      * Returns the children of this folder using the given OperationContext.
      *
-     * https://github.com/apache/chemistry-opencmis/blob/trunk/chemistry-opencmis-client/chemistry-opencmis-client-impl/src/main/java/org/apache/chemistry/opencmis/client/runtime/FolderImpl.java#L269
+     * @link https://github.com/apache/chemistry-opencmis/blob/trunk/chemistry-opencmis-client/chemistry-opencmis-client-impl/src/main/java/org/apache/chemistry/opencmis/client/runtime/FolderImpl.java#L269
      *
      * @param OperationContextInterface|null $context
      * @return CollectionIterable

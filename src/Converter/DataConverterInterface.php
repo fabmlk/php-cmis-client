@@ -32,6 +32,7 @@ use Dkd\PhpCmis\Definitions\PropertyDefinitionInterface;
 use Dkd\PhpCmis\Definitions\TypeDefinitionContainerInterface;
 use Dkd\PhpCmis\Definitions\TypeDefinitionInterface;
 use Dkd\PhpCmis\Definitions\TypeDefinitionListInterface;
+use Dkd\PhpCmis\TypeCacheInterface;
 
 /**
  * Interface DataConverterInterface
@@ -249,18 +250,20 @@ interface DataConverterInterface
     /**
      * Convert given input data to a ObjectData object
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param TypeCacheInterface|null $typeCache
      * @return ObjectDataInterface
      */
-    public function convertObject(array $data = null);
+    public function convertObject(array $data = null, TypeCacheInterface $typeCache = null);
 
     /**
      * Convert given input data to a ObjectData object
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param TypeCacheInterface|null $typeCache
      * @return ObjectDataInterface[]
      */
-    public function convertObjects(array $data = null);
+    public function convertObjects(array $data = null, TypeCacheInterface $typeCache = null);
 
     /**
      * Convert given input data to a Acl object
@@ -299,10 +302,12 @@ interface DataConverterInterface
     /**
      * Convert given input data to a SuccinctProperties object
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param array                   $extensions
+     * @param TypeCacheInterface|null $typeCache
      * @return PropertiesInterface
      */
-    public function convertSuccinctProperties(array $data = null);
+    public function convertSuccinctProperties(array $data = null, $extensions = [], TypeCacheInterface $typeCache = null);
 
     /**
      * Convert given input data to a RenditionData object
@@ -323,18 +328,20 @@ interface DataConverterInterface
     /**
      * Convert given input data to a ObjectInFolderList object
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param TypeCacheInterface|null $typeCache
      * @return ObjectInFolderListInterface
      */
-    public function convertObjectInFolderList(array $data = null);
+    public function convertObjectInFolderList(array $data = null, TypeCacheInterface $typeCache = null);
 
     /**
      * Convert given input data to a ObjectInFolder object
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param TypeCacheInterface|null $typeCache
      * @return ObjectInFolderData|null
      */
-    public function convertObjectInFolder(array $data = null);
+    public function convertObjectInFolder(array $data = null, TypeCacheInterface $typeCache = null);
 
     /**
      * Convert given input data to an Extension object

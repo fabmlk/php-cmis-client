@@ -10,8 +10,9 @@ namespace Dkd\PhpCmis;
  * file that was distributed with this source code.
  */
 
+use Dkd\PhpCmis\Bindings\TypeDefinitionCacheInterface;
+use Dkd\PhpCmis\Cache\CacheInterface;
 use Dkd\PhpCmis\DataObjects\RepositoryInfo;
-use Doctrine\Common\Cache\Cache;
 
 /**
  * Entry point into the php cmis lib Client API.
@@ -24,8 +25,8 @@ interface SessionFactoryInterface
      * @param string[] $parameters a array of name/value pairs with parameters for the session, see
      *            {@link SessionParameter} for parameters supported by php cmis lib
      * @param ObjectFactoryInterface|null $objectFactory
-     * @param Cache|null $cache
-     * @param Cache|null $typeDefinitionCache
+     * @param CacheInterface|null $cache
+     * @param TypeDefinitionCacheInterface|null $typeDefinitionCache
      * @return SessionInterface a {@link SessionInterface} connected to the CMIS repository
      *
      * @see SessionParameter
@@ -33,8 +34,8 @@ interface SessionFactoryInterface
     public function createSession(
         array $parameters,
         ObjectFactoryInterface $objectFactory = null,
-        Cache $cache = null,
-        Cache $typeDefinitionCache = null
+        CacheInterface $cache = null,
+        TypeDefinitionCacheInterface $typeDefinitionCache = null
     );
 
     /**
@@ -45,8 +46,8 @@ interface SessionFactoryInterface
      *            {@link SessionParameter::REPOSITORY_ID} should not be set
      *
      * @param ObjectFactoryInterface|null $objectFactory
-     * @param Cache|null $cache
-     * @param Cache|null $typeDefinitionCache
+     * @param CacheInterface|null $cache
+     * @param TypeDefinitionCacheInterface|null $typeDefinitionCache
      * @return RepositoryInfo[] a list of all available repositories
      *
      * @see org.apache.chemistry.opencmis.commons.SessionParameter
@@ -54,7 +55,7 @@ interface SessionFactoryInterface
     public function getRepositories(
         array $parameters,
         ObjectFactoryInterface $objectFactory = null,
-        Cache $cache = null,
-        Cache $typeDefinitionCache = null
+        CacheInterface $cache = null,
+        TypeDefinitionCacheInterface $typeDefinitionCache = null
     );
 }

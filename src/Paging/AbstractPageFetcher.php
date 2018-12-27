@@ -3,7 +3,7 @@
 namespace Dkd\PhpCmis\Paging;
 
 /**
- * https://github.com/apache/chemistry-opencmis/blob/trunk/chemistry-opencmis-client/chemistry-opencmis-client-impl/src/main/java/org/apache/chemistry/opencmis/client/runtime/util/AbstractPageFetcher.java
+ * @link https://github.com/apache/chemistry-opencmis/blob/trunk/chemistry-opencmis-client/chemistry-opencmis-client-impl/src/main/java/org/apache/chemistry/opencmis/client/runtime/util/AbstractPageFetcher.java
  */
 abstract class AbstractPageFetcher
 {

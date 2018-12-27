@@ -11,6 +11,7 @@ namespace Dkd\PhpCmis\Test\Unit\Bindings\Browser;
  */
 
 use Dkd\PhpCmis\Bindings\BindingSessionInterface;
+use Dkd\PhpCmis\Bindings\CmisBindingsHelper;
 use Dkd\PhpCmis\SessionParameter;
 use Dkd\PhpCmis\Test\Unit\FixtureHelperTrait;
 use Dkd\PhpCmis\Test\Unit\ReflectionHelperTrait;
@@ -25,7 +26,6 @@ abstract class AbstractBrowserBindingServiceTestCase extends \PHPUnit_Framework_
     use FixtureHelperTrait;
 
     const BROWSER_URL_TEST = 'http://foo.bar.baz';
-    const TYPE_DEFINITION_CACHE_CLASS = 'http://foo.bar.baz';
 
     /**
      * Returns a mock of a BindingSessionInterface
@@ -38,7 +38,8 @@ abstract class AbstractBrowserBindingServiceTestCase extends \PHPUnit_Framework_
         $map = [
             [SessionParameter::BROWSER_SUCCINCT, null, false],
             [SessionParameter::BROWSER_URL, null, self::BROWSER_URL_TEST],
-            [SessionParameter::TYPE_DEFINITION_CACHE_CLASS, null, '\\Doctrine\\Common\\Cache\\ArrayCache']
+            [CmisBindingsHelper::REPOSITORY_INFO_CACHE, null, $this->getRepositoryInfoCacheMock()],
+            [CmisBindingsHelper::TYPE_DEFINITION_CACHE, null, $this->getTypeDefinitionCacheMock()]
         ];
 
         $map = array_merge($sessionParameterMap, $map);
@@ -50,5 +51,17 @@ abstract class AbstractBrowserBindingServiceTestCase extends \PHPUnit_Framework_
         $sessionMock->expects($this->any())->method('get')->will($this->returnValueMap($map));
 
         return $sessionMock;
+    }
+
+    protected function getRepositoryInfoCacheMock()
+    {
+        return $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\RepositoryInfoCache')
+            ->disableOriginalConstructor()->getMock();
+    }
+
+    protected function getTypeDefinitionCacheMock()
+    {
+        return $this->getMockBuilder('\\Dkd\\PhpCmis\\Bindings\\TypeDefinitionCache')
+            ->disableOriginalConstructor()->getMock();
     }
 }

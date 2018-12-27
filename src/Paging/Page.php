@@ -5,7 +5,7 @@ namespace Dkd\PhpCmis\Paging;
 /**
  * A fetched page.
  *
- * https://github.com/apache/chemistry-opencmis/blob/trunk/chemistry-opencmis-client/chemistry-opencmis-client-impl/src/main/java/org/apache/chemistry/opencmis/client/runtime/util/AbstractPageFetcher.java
+ * @link https://github.com/apache/chemistry-opencmis/blob/trunk/chemistry-opencmis-client/chemistry-opencmis-client-impl/src/main/java/org/apache/chemistry/opencmis/client/runtime/util/AbstractPageFetcher.java
  * (inner class in Java)
  */
 class Page

@@ -89,8 +89,9 @@ class NavigationService extends AbstractBrowserBindingService implements Navigat
 
         $responseData = (array) $this->readJson($url);
 
-        // TODO Implement Cache
-        return $this->getJsonConverter()->convertObjectList($responseData);
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        return $this->getJsonConverter()->convertObjectList($responseData, $typeCache);
     }
 
     /**
@@ -161,8 +162,9 @@ class NavigationService extends AbstractBrowserBindingService implements Navigat
 
         $responseData = (array) $this->readJson($url);
 
-        // TODO Implement Cache
-        return $this->getJsonConverter()->convertObjectInFolderList($responseData);
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        return $this->getJsonConverter()->convertObjectInFolderList($responseData, $typeCache);
     }
 
     /**
@@ -217,8 +219,9 @@ class NavigationService extends AbstractBrowserBindingService implements Navigat
 
         $responseData = (array) $this->readJson($url);
 
-        // TODO Implement Cache
-        return $this->getJsonConverter()->convertDescendants($responseData);
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        return $this->getJsonConverter()->convertDescendants($responseData, $typeCache);
     }
 
     /**
@@ -251,8 +254,9 @@ class NavigationService extends AbstractBrowserBindingService implements Navigat
 
         $responseData = (array) $this->readJson($url);
 
-        // TODO Implement Cache
-        return $this->getJsonConverter()->convertObject($responseData);
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        return $this->getJsonConverter()->convertObject($responseData, $typeCache);
     }
 
     /**
@@ -307,8 +311,9 @@ class NavigationService extends AbstractBrowserBindingService implements Navigat
 
         $responseData = (array) $this->readJson($url);
 
-        // TODO Implement Cache
-        return $this->getJsonConverter()->convertDescendants($responseData);
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        return $this->getJsonConverter()->convertDescendants($responseData, $typeCache);
     }
 
     /**
@@ -360,7 +365,8 @@ class NavigationService extends AbstractBrowserBindingService implements Navigat
 
         $responseData = (array) $this->readJson($url);
 
-        // TODO Implement Cache
-        return $this->getJsonConverter()->convertObjectParents($responseData);
+        $typeCache = new ClientTypeCache($repositoryId, $this);
+
+        return $this->getJsonConverter()->convertObjectParents($responseData, $typeCache);
     }
 }

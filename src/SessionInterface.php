@@ -26,6 +26,7 @@ use Dkd\PhpCmis\Definitions\TypeDefinitionInterface;
 use Dkd\PhpCmis\Enum\AclPropagation;
 use Dkd\PhpCmis\Enum\IncludeRelationships;
 use Dkd\PhpCmis\Enum\RelationshipDirection;
+use Dkd\PhpCmis\Enum\UnfileObject;
 use Dkd\PhpCmis\Enum\VersioningState;
 use Dkd\PhpCmis\Exception\CmisObjectNotFoundException;
 use GuzzleHttp\Stream\StreamInterface;
@@ -324,6 +325,20 @@ interface SessionInterface
      *      if only this version or all versions should be deleted
      */
     public function delete(ObjectIdInterface $objectId, $allVersions = true);
+
+    /**
+     * Deletes a folder and all subfolders.
+     *
+     * @param ObjectIdInterface $folderId the ID of the folder
+     * @param bool              $allVersions if this object is a document this parameter defines if only
+     *                                       this version or all versions should be deleted
+     * @param UnfileObject      $unfile defines how objects should be unfiled
+     * @param bool              $continueOnFailure if {@code true} the repository tries to delete as many objects
+     *                                             as possible; if {@code false} the repository stops at the
+     *                                             first object that could not be deleted
+     * @return string[]|null a list of object IDs which failed to be deleted
+     */
+    public function deleteTree(ObjectIdInterface $folderId, $allVersions, UnfileObject $unfile, $continueOnFailure = true);
 
     /**
      * Deletes a type.

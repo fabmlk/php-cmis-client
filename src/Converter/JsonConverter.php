@@ -106,6 +106,7 @@ use function array_diff_key;
 use function array_filter;
 use function array_flip;
 use function array_map;
+use Dkd\PhpCmis\TypeCacheInterface;
 use function is_array;
 
 /**
@@ -773,10 +774,12 @@ class JsonConverter extends AbstractDataConverter
     /**
      * Converts an object.
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param TypeCacheInterface|null $typeCache
      * @return null|ObjectData
+     * @throws \Exception
      */
-    public function convertObject(array $data = null)
+    public function convertObject(array $data = null, TypeCacheInterface $typeCache = null)
     {
         if (empty($data)) {
             return null;
@@ -829,7 +832,8 @@ class JsonConverter extends AbstractDataConverter
         if (isset($data[JSONConstants::JSON_OBJECT_SUCCINCT_PROPERTIES])) {
             $properties = $this->convertSuccinctProperties(
                 $data[JSONConstants::JSON_OBJECT_SUCCINCT_PROPERTIES] ?? [],
-                (array) ($data[JSONConstants::JSON_OBJECT_PROPERTIES_EXTENSION] ?? [])
+                (array) ($data[JSONConstants::JSON_OBJECT_PROPERTIES_EXTENSION] ?? []),
+                $typeCache
             );
         } else {
             $properties = $this->convertProperties(
@@ -839,7 +843,7 @@ class JsonConverter extends AbstractDataConverter
         }
 
         $object->setProperties($properties ?? []);
-        $object->setRelationships($this->convertObjects($data[JSONConstants::JSON_OBJECT_RELATIONSHIPS] ?? null));
+        $object->setRelationships($this->convertObjects($data[JSONConstants::JSON_OBJECT_RELATIONSHIPS] ?? null, $typeCache));
         $object->setRenditions($this->convertRenditions($data[JSONConstants::JSON_OBJECT_RENDITIONS] ?? []));
         $object->setExtensions($this->convertExtension($data, JSONConstants::getObjectKeys()));
 
@@ -847,14 +851,17 @@ class JsonConverter extends AbstractDataConverter
     }
 
     /**
-     * @param array|null $data
+     * @param array|null         $data
+     * @param TypeCacheInterface $typeCache
      * @return ObjectDataInterface[]
      */
-    public function convertObjects(array $data = null)
+    public function convertObjects(array $data = null, TypeCacheInterface $typeCache = null)
     {
         return array_filter(
             array_map(
-                [$this, 'convertObject'],
+                function ($data) use ($typeCache) {
+                    return $this->convertObject($data, $typeCache);
+                },
                 array_filter(
                     (array) $data,
                     'is_array'
@@ -974,12 +981,13 @@ class JsonConverter extends AbstractDataConverter
     /**
      * TODO Add description
      *
-     * @param array|null $data
-     * @param array $extensions
-     * @return PropertiesInterface
+     * @param array|null              $data
+     * @param array                   $extensions
+     * @param TypeCacheInterface|null $typeCache
+     * @return void
      * @throws \Exception
      */
-    public function convertSuccinctProperties(array $data = null, $extensions = [])
+    public function convertSuccinctProperties(array $data = null, $extensions = [], TypeCacheInterface $typeCache = null)
     {
         throw new \Exception('Succinct properties are currently not supported.');
 // TODO IMPLEMENT SUCCINCT PROPERTY SUPPORT
@@ -1537,17 +1545,20 @@ class JsonConverter extends AbstractDataConverter
     /**
      * Convert given input data to a ObjectInFolderList object
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param TypeCacheInterface|null $typeCache
      * @return null|ObjectInFolderList
      */
-    public function convertObjectInFolderList(array $data = null)
+    public function convertObjectInFolderList(array $data = null, TypeCacheInterface $typeCache = null)
     {
         if (empty($data)) {
             return null;
         }
         $objects = array_filter(
             array_map(
-                [$this, 'convertObjectInFolder'],
+                function ($data) use ($typeCache) {
+                    return $this->convertObjectInFolder($data, $typeCache);
+                },
                 $data[JSONConstants::JSON_OBJECTINFOLDERLIST_OBJECTS] ?? []
             ),
             function ($item) { return !empty($item); }
@@ -1564,17 +1575,19 @@ class JsonConverter extends AbstractDataConverter
     /**
      * Convert given input data to a ObjectInFolderData object
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param TypeCacheInterface|null $typeCache
      * @return ObjectInFolderData|null
+     * @throws \Exception
      */
-    public function convertObjectInFolder(array $data = null)
+    public function convertObjectInFolder(array $data = null, TypeCacheInterface $typeCache = null)
     {
         if (empty($data)) {
             return null;
         }
 
         $objectInFolderData = new ObjectInFolderData();
-        $object = $this->convertObject($data[JSONConstants::JSON_OBJECTINFOLDER_OBJECT] ?? []);
+        $object = $this->convertObject($data[JSONConstants::JSON_OBJECTINFOLDER_OBJECT] ?? [], $typeCache);
 
         if ($object !== null) {
             $objectInFolderData->setObject($object);
@@ -1589,14 +1602,17 @@ class JsonConverter extends AbstractDataConverter
     /**
      * Convert given input data to a list of ObjectParentData objects
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param TypeCacheInterface|null $typeCache
      * @return ObjectParentData[]
      */
-    public function convertObjectParents(array $data = null)
+    public function convertObjectParents(array $data = null, TypeCacheInterface $typeCache = null)
     {
         return array_filter(
             array_map(
-                [$this, 'convertObjectParentData'],
+                function ($data) use ($typeCache) {
+                    return $this->convertObjectParentData($data, $typeCache);
+                },
                 (array) ($data ?? [])
             ),
             function ($item) {
@@ -1609,17 +1625,19 @@ class JsonConverter extends AbstractDataConverter
     /**
      * Convert given input data to a ObjectParentData object
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param TypeCacheInterface|null $typeCache
      * @return null|ObjectParentData
+     * @throws \Exception
      */
-    public function convertObjectParentData(array $data = null)
+    public function convertObjectParentData(array $data = null, TypeCacheInterface $typeCache = null)
     {
         if (empty($data)) {
             return null;
         }
         $parent = new ObjectParentData();
 
-        $object = $this->convertObject($data[JSONConstants::JSON_OBJECTPARENTS_OBJECT] ?? null);
+        $object = $this->convertObject($data[JSONConstants::JSON_OBJECTPARENTS_OBJECT] ?? null, $typeCache);
         if ($object !== null) {
             $parent->setObject($object);
         }
@@ -1633,10 +1651,11 @@ class JsonConverter extends AbstractDataConverter
     /**
      * Convert given input data array to a ObjectList object
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param TypeCacheInterface|null $typeCache
      * @return null|ObjectList
      */
-    public function convertObjectList(array $data = null)
+    public function convertObjectList(array $data = null, TypeCacheInterface $typeCache = null)
     {
         if (empty($data)) {
             return null;
@@ -1646,7 +1665,7 @@ class JsonConverter extends AbstractDataConverter
         $objects = [];
 
         foreach ((array) ($data[JSONConstants::JSON_OBJECTLIST_OBJECTS] ?? []) as $objectData) {
-            $object = $this->convertObject($objectData);
+            $object = $this->convertObject($objectData, $typeCache);
 
             if ($object !== null) {
                 $objects[] = $object;
@@ -1671,10 +1690,12 @@ class JsonConverter extends AbstractDataConverter
     /**
      * Convert given input data array from query result to a ObjectList object
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param TypeCacheInterface|null $typeCache
      * @return null|ObjectList
+     * @throws \Exception
      */
-    public function convertQueryResultList(array $data = null)
+    public function convertQueryResultList(array $data = null, TypeCacheInterface $typeCache = null)
     {
         if (empty($data)) {
             return null;
@@ -1684,7 +1705,7 @@ class JsonConverter extends AbstractDataConverter
         $objects = [];
 
         foreach ((array) ($data[JSONConstants::JSON_QUERYRESULTLIST_RESULTS] ?? []) as $objectData) {
-            $object = $this->convertObject($objectData);
+            $object = $this->convertObject($objectData, $typeCache);
 
             if ($object !== null) {
                 $objects[] = $object;
@@ -1706,14 +1727,17 @@ class JsonConverter extends AbstractDataConverter
     /**
      * Convert given input data array to a ObjectList object
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param TypeCacheInterface|null $typeCache
      * @return ObjectInFolderContainer[]
      */
-    public function convertDescendants(array $data = null)
+    public function convertDescendants(array $data = null, TypeCacheInterface $typeCache = null)
     {
         return array_filter(
             array_map(
-                [$this, 'convertDescendant'],
+                function ($data) use ($typeCache) {
+                    return $this->convertDescendant($data, $typeCache);
+                },
                 $data ?? []
             ),
             function ($item) { return !empty($item); }
@@ -1723,17 +1747,18 @@ class JsonConverter extends AbstractDataConverter
     /**
      * Convert given input data array to a ObjectInFolderContainer object
      *
-     * @param array|null $data
+     * @param array|null              $data
+     * @param TypeCacheInterface|null $typeCache
      * @return null|ObjectInFolderContainer
-     * @throws CmisRuntimeException
+     * @throws \Exception
      */
-    public function convertDescendant(array $data = null)
+    public function convertDescendant(array $data = null, TypeCacheInterface $typeCache = null)
     {
         if (empty($data)) {
             return null;
         }
 
-        $object = $this->convertObjectInFolder($data[JSONConstants::JSON_OBJECTINFOLDERCONTAINER_OBJECT] ?? null);
+        $object = $this->convertObjectInFolder($data[JSONConstants::JSON_OBJECTINFOLDERCONTAINER_OBJECT] ?? null, $typeCache);
 
         if ($object === null) {
             throw new CmisRuntimeException('Given data could not be converted to ObjectInFolder!');
@@ -1744,7 +1769,9 @@ class JsonConverter extends AbstractDataConverter
         $objectInFolderContainer->setChildren(
             array_filter(
                 array_map(
-                    [$this, 'convertDescendant'],
+                    function ($data) use ($typeCache) {
+                        return $this->convertDescendant($data, $typeCache);
+                    },
                     (array) ($data[JSONConstants::JSON_OBJECTINFOLDERCONTAINER_CHILDREN] ?? [])
                 ),
                 function ($item) { return !empty($item); }

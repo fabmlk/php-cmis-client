@@ -10,6 +10,7 @@ namespace Dkd\PhpCmis\Bindings\Browser;
  * file that was distributed with this source code.
  */
 
+use Dkd\PhpCmis\Bindings\TypeDefinitionCacheInterface;
 use Dkd\PhpCmis\Constants;
 use Dkd\PhpCmis\Data\ExtensionDataInterface;
 use Dkd\PhpCmis\Data\RepositoryInfoInterface;
@@ -43,7 +44,12 @@ class RepositoryService extends AbstractBrowserBindingService implements Reposit
             ]
         );
 
-        return $this->getJsonConverter()->convertTypeDefinition($this->postJson($url));
+        $typeDefinition = $this->getJsonConverter()->convertTypeDefinition($this->postJson($url));
+
+        // add the type to cache
+        $this->cmisBindingsHelper->getTypeDefinitionCache($this->session)->put($repositoryId, $typeDefinition);
+
+        return $typeDefinition;
     }
 
     /**
@@ -65,6 +71,9 @@ class RepositoryService extends AbstractBrowserBindingService implements Reposit
         );
 
         $this->post($url);
+
+        // remove the type from cache
+        $this->cmisBindingsHelper->getTypeDefinitionCache($this->session)->remove($repositoryId, $typeId);
     }
 
     /**
@@ -78,8 +87,20 @@ class RepositoryService extends AbstractBrowserBindingService implements Reposit
      */
     public function getRepositoryInfo($repositoryId, ExtensionDataInterface $extension = null)
     {
+        $hasExtension = $extension && !empty($extension->getExtensions());
+        $cache = $this->cmisBindingsHelper->getRepositoryInfoCache($this->session);
+
+        if (!$hasExtension) {
+            if (null !== $repositoryInfo = $cache->get($repositoryId)) {
+                return $repositoryInfo;
+            }
+        }
+
         foreach ($this->getRepositoriesInternal($repositoryId) as $repositoryInfo) {
             if ($repositoryInfo->getId() === $repositoryId) {
+                if (!$hasExtension) {
+                    $cache->put($repositoryInfo);
+                }
                 return $repositoryInfo;
             }
         }
@@ -96,7 +117,17 @@ class RepositoryService extends AbstractBrowserBindingService implements Reposit
      */
     public function getRepositoryInfos(ExtensionDataInterface $extension = null)
     {
-        return $this->getRepositoriesInternal();
+        $hasExtension = $extension && !empty($extension->getExtensions());
+        $repositoryInfos = $this->getRepositoriesInternal();
+
+        if (!$hasExtension && $repositoryInfos) {
+            $cache = $this->cmisBindingsHelper->getRepositoryInfoCache($this->session);
+            foreach($repositoryInfos as $repositoryInfo) {
+                $cache->put($repositoryInfo);
+            }
+        }
+
+        return $repositoryInfos;
     }
 
     /**
@@ -122,6 +153,7 @@ class RepositoryService extends AbstractBrowserBindingService implements Reposit
         $skipCount = 0,
         ExtensionDataInterface $extension = null
     ) {
+        $hasExtension = $extension && !empty($extension->getExtensions());
         $url = $this->getRepositoryUrl($repositoryId, Constants::SELECTOR_TYPE_CHILDREN);
         $url->getQuery()->modify(
             [
@@ -141,7 +173,16 @@ class RepositoryService extends AbstractBrowserBindingService implements Reposit
 
         $responseData = (array) $this->readJson($url);
 
-        return $this->getJsonConverter()->convertTypeChildren($responseData);
+        $typeDefinitionList = $this->getJsonConverter()->convertTypeChildren($responseData);
+
+        if (!$hasExtension && $includePropertyDefinitions && $typeDefinitionList) {
+            $cache = $this->cmisBindingsHelper->getTypeDefinitionCache($this->session);
+            foreach($typeDefinitionList->getList() as $typeDefinition) {
+                $cache->put($repositoryId, $typeDefinition);
+            }
+        }
+
+        return $typeDefinitionList;
     }
 
     /**
@@ -159,21 +200,19 @@ class RepositoryService extends AbstractBrowserBindingService implements Reposit
         ExtensionDataInterface $extension = null,
         $useCache = true
     ) {
-        $cache = null;
-        $cacheKey = $repositoryId . '-' . $typeId;
+        $cache = $this->cmisBindingsHelper->getTypeDefinitionCache($this->getSession());
 
         // if the cache should be used and the extension is not set, check the cache first
-        if ($useCache === true && empty($extension)) {
-            $cache = $this->cmisBindingsHelper->getTypeDefinitionCache($this->getSession());
-
-            if ($cache->contains($cacheKey)) {
-                return $cache->fetch($cacheKey);
+        $hasExtension = $extension && !empty($extension->getExtensions());
+        if ($useCache === true && !$hasExtension) {
+            if (null !== $typeDefinition = $cache->get($repositoryId, $typeId)) {
+                return $typeDefinition;
             }
         }
         $typeDefinition = $this->getTypeDefinitionInternal($repositoryId, $typeId);
 
-        if ($useCache === true && empty($extension)) {
-            $cache->save($cacheKey, $typeDefinition);
+        if ($useCache === true && $typeDefinition) {
+            $cache->put($repositoryId, $typeDefinition);
         }
 
         return $typeDefinition;
@@ -199,6 +238,7 @@ class RepositoryService extends AbstractBrowserBindingService implements Reposit
         $includePropertyDefinitions = false,
         ExtensionDataInterface $extension = null
     ) {
+        $hasExtension = $extension && !empty($extension->getExtensions());
         $url = $this->getRepositoryUrl($repositoryId, Constants::SELECTOR_TYPE_DESCENDANTS);
         $url->getQuery()->modify(
             [
@@ -217,7 +257,14 @@ class RepositoryService extends AbstractBrowserBindingService implements Reposit
 
         $responseData = (array) $this->readJson($url);
 
-        return $this->getJsonConverter()->convertTypeDescendants($responseData);
+        $typeDefinitionContainers = $this->getJsonConverter()->convertTypeDescendants($responseData);
+
+        if (!$hasExtension && $includePropertyDefinitions && $typeDefinitionContainers) {
+            $cache = $this->cmisBindingsHelper->getTypeDefinitionCache($this->session);
+            $this->addToTypeCache($cache, $repositoryId, $typeDefinitionContainers);
+        }
+
+        return $typeDefinitionContainers;
     }
 
     /**
@@ -239,6 +286,24 @@ class RepositoryService extends AbstractBrowserBindingService implements Reposit
             ]
         );
 
-        return $this->getJsonConverter()->convertTypeDefinition($this->postJson($url));
+        $typeDefinition = $this->getJsonConverter()->convertTypeDefinition($this->postJson($url));
+
+        // update the type in cache
+        $this->cmisBindingsHelper->getTypeDefinitionCache($this->session)->put($repositoryId, $typeDefinition);
+
+        return $typeDefinition;
+    }
+
+    /**
+     * @param TypeDefinitionCacheInterface $cache
+     * @param                              $repositoryId
+     * @param array                        $containers
+     */
+    private function addToTypeCache(TypeDefinitionCacheInterface $cache, $repositoryId, array $containers)
+    {
+        foreach($containers as $container) {
+            $cache->put($repositoryId, $container->getTypeDefinition());
+            $this->addToTypeCache($cache, $repositoryId, $container->getChildren());
+        }
     }
 }
