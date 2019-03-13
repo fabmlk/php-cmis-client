@@ -1593,7 +1593,7 @@ class JsonConverter extends AbstractDataConverter
             $objectInFolderData->setObject($object);
         }
 
-        $objectInFolderData->setPathSegment((string) $data[JSONConstants::JSON_OBJECTINFOLDER_PATH_SEGMENT] ?? null);
+        $objectInFolderData->setPathSegment((string) ($data[JSONConstants::JSON_OBJECTINFOLDER_PATH_SEGMENT] ?? null));
         $objectInFolderData->setExtensions($this->convertExtension($data, JSONConstants::getObjectInFolderKeys()));
 
         return $objectInFolderData;
