@@ -563,18 +563,22 @@ abstract class AbstractBrowserBindingService implements LinkAccessInterface
             $propertyValues = $property->getValues();
 
             if (count($propertyValues) === 1) {
-                $propertiesArray[Constants::CONTROL_PROP_VALUE][$propertyCounter] =
-                    $this->convertPropertyValueToSimpleType(
-                        $property->getFirstValue()
-                    );
+                $convertedPropertyValue = $this->convertPropertyValueToSimpleType(
+                    $property->getFirstValue()
+                );
+                if (null !== $convertedPropertyValue) {
+                    $propertiesArray[Constants::CONTROL_PROP_VALUE][$propertyCounter] = $convertedPropertyValue;
+                }
             } elseif (count($propertyValues) > 1) {
                 $propertyValueCounter = 0;
                 $propertiesArray[Constants::CONTROL_PROP_VALUE][$propertyCounter] = [];
                 foreach ($propertyValues as $propertyValue) {
-                    $propertiesArray[Constants::CONTROL_PROP_VALUE][$propertyCounter][$propertyValueCounter] =
-                        $this->convertPropertyValueToSimpleType(
-                            $propertyValue
-                        );
+                    $convertedPropertyValue = $this->convertPropertyValueToSimpleType(
+                        $propertyValue
+                    );
+                    if (null !== $convertedPropertyValue) {
+                        $propertiesArray[Constants::CONTROL_PROP_VALUE][$propertyCounter][$propertyValueCounter] = $convertedPropertyValue;
+                    }
                     $propertyValueCounter ++;
                 }
             }
