@@ -33,7 +33,7 @@ use Dkd\PhpCmis\TreeInterface;
 use Dkd\PhpCmis\Paging\AbstractPageFetcher;
 use Dkd\PhpCmis\Paging\CollectionIterable;
 use Dkd\PhpCmis\Paging\Page;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Cmis folder implementation

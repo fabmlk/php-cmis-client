@@ -17,7 +17,7 @@ use Dkd\PhpCmis\Data\ObjectDataInterface;
 use Dkd\PhpCmis\Data\PropertiesInterface;
 use Dkd\PhpCmis\Enum\IncludeRelationships;
 use Dkd\PhpCmis\VersioningServiceInterface;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Versioning Service Browser Binding client.

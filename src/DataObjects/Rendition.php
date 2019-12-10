@@ -15,7 +15,7 @@ use Dkd\PhpCmis\Data\DocumentInterface;
 use Dkd\PhpCmis\Data\RenditionInterface;
 use Dkd\PhpCmis\OperationContextInterface;
 use Dkd\PhpCmis\SessionInterface;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Cmis Rendition implementation

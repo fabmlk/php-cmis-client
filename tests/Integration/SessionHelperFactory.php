@@ -26,7 +26,7 @@ class SessionHelperFactory
             $session->createObjectId(
                 $session->getRepositoryInfo()->getRootFolderId()
             ),
-            \GuzzleHttp\Stream\Stream::factory("WHATEVER")
+            \GuzzleHttp\Psr7\stream_for("WHATEVER")
         );
     }
 

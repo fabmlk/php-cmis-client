@@ -12,7 +12,7 @@ namespace Dkd\PhpCmis\Data;
 
 use Dkd\PhpCmis\Enum\VersioningState;
 use Dkd\PhpCmis\OperationContextInterface;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * CMIS document interface.

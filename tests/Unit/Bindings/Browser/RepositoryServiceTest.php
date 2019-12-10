@@ -121,7 +121,7 @@ class RepositoryServiceTest extends AbstractBrowserBindingServiceTestCase
         TypeDefinitionInterface $type
     ) {
         $responseData = ['foo' => 'bar'];
-        $responseMock = $this->getMockBuilder('\\GuzzleHttp\\Message\\Response')->disableOriginalConstructor(
+        $responseMock = $this->getMockBuilder('\\GuzzleHttp\\Psr7\\Response')->disableOriginalConstructor(
         )->setMethods(['getBody'])->getMock();
         $responseMock->expects($this->any())->method('getBody')->willReturn(json_encode($responseData));
 
@@ -259,7 +259,7 @@ class RepositoryServiceTest extends AbstractBrowserBindingServiceTestCase
         TypeDefinitionInterface $type
     ) {
         $responseData = ['foo' => 'bar'];
-        $responseMock = $this->getMockBuilder('\\GuzzleHttp\\Message\\Response')->disableOriginalConstructor(
+        $responseMock = $this->getMockBuilder('\\GuzzleHttp\\Psr7\\Response')->disableOriginalConstructor(
         )->setMethods(['getBody'])->getMock();
         $responseMock->expects($this->any())->method('getBody')->willReturn(json_encode($responseData));
 

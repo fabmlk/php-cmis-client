@@ -176,7 +176,7 @@ class DiscoveryServiceTest extends AbstractBrowserBindingServiceTestCase
         $skipCount = 0
     ) {
         $responseData = $this->getResponseFixtureContentAsArray('Cmis/v1.1/BrowserBinding/doQuery-response.log');
-        $responseMock = $this->getMockBuilder('\\GuzzleHttp\\Message\\Response')->disableOriginalConstructor(
+        $responseMock = $this->getMockBuilder('\\GuzzleHttp\\Psr7\\Response')->disableOriginalConstructor(
         )->setMethods(['getBody'])->getMock();
         $responseMock->expects($this->once())->method('getBody')->willReturn(json_encode($responseData));
 
@@ -304,7 +304,7 @@ class DiscoveryServiceTest extends AbstractBrowserBindingServiceTestCase
         $maxItems = null
     ) {
         $responseData = ['foo' => 'bar'];
-        $responseMock = $this->getMockBuilder('\\GuzzleHttp\\Message\\Response')->disableOriginalConstructor(
+        $responseMock = $this->getMockBuilder('\\GuzzleHttp\\Psr7\\Response')->disableOriginalConstructor(
         )->setMethods(['getBody'])->getMock();
         $responseMock->expects($this->once())->method('getBody')->willReturn(json_encode($responseData));
 
@@ -365,7 +365,7 @@ class DiscoveryServiceTest extends AbstractBrowserBindingServiceTestCase
         $responseData = $this->getResponseFixtureContentAsArray(
             'Cmis/v1.1/BrowserBinding/getContentChanges-response.log'
         );
-        $responseMock = $this->getMockBuilder('\\GuzzleHttp\\Message\\Response')->disableOriginalConstructor(
+        $responseMock = $this->getMockBuilder('\\GuzzleHttp\\Psr7\\Response')->disableOriginalConstructor(
         )->setMethods(['getBody'])->getMock();
         $responseMock->expects($this->once())->method('getBody')->willReturn(json_encode($responseData));
 

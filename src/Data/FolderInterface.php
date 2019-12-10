@@ -15,7 +15,7 @@ use Dkd\PhpCmis\Enum\UnfileObject;
 use Dkd\PhpCmis\Enum\VersioningState;
 use Dkd\PhpCmis\OperationContextInterface;
 use Dkd\PhpCmis\TreeInterface;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * CMIS folder interface.

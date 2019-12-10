@@ -60,7 +60,7 @@ use Dkd\PhpCmis\Enum\Cardinality;
 use Dkd\PhpCmis\Enum\Updatability;
 use Dkd\PhpCmis\Exception\CmisInvalidArgumentException;
 use Dkd\PhpCmis\Exception\CmisRuntimeException;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Object Factory implementation

@@ -46,7 +46,7 @@ try {
     $document = $session->createDocument(
         $properties,
         $session->createObjectId($session->getRepositoryInfo()->getRootFolderId()),
-        \GuzzleHttp\Stream\Stream::factory(fopen(__DIR__ . '/../README.md', 'r'))
+        \GuzzleHttp\Psr7\stream_for(fopen(__DIR__ . '/../README.md', 'r'))
     );
 
     echo "Document has been created. Document Id: " . $document->getId() . "\n";

@@ -45,7 +45,6 @@ use Dkd\PhpCmis\Exception\CmisUpdateConflictException;
 use Dkd\PhpCmis\Exception\CmisVersioningException;
 use Dkd\PhpCmis\SessionParameter;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Message\RequestInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Client;

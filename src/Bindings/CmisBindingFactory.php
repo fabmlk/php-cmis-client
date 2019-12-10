@@ -14,7 +14,6 @@ use Dkd\PhpCmis\Bindings\Browser\CmisBrowserBinding;
 use Dkd\PhpCmis\Converter\JsonConverter;
 use Dkd\PhpCmis\Exception\CmisInvalidArgumentException;
 use Dkd\PhpCmis\SessionParameter;
-use Dkd\PhpCmis\SessionParameterDefaults;
 use GuzzleHttp\Client;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 

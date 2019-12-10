@@ -26,7 +26,7 @@ use Dkd\PhpCmis\Exception\CmisRuntimeException;
 use Dkd\PhpCmis\Exception\CmisVersioningException;
 use Dkd\PhpCmis\OperationContextInterface;
 use Dkd\PhpCmis\PropertyIds;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Cmis document implementation

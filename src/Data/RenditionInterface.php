@@ -11,7 +11,7 @@ namespace Dkd\PhpCmis\Data;
  */
 
 use Dkd\PhpCmis\OperationContextInterface;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Rendition.

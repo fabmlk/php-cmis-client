@@ -1,4 +1,7 @@
 <?php
+
+use function GuzzleHttp\Psr7\stream_for;
+
 require_once(__DIR__ . '/../vendor/autoload.php');
 if (!is_file(__DIR__ . '/conf/Configuration.php')) {
     die("Please add your connection credentials to the file \"" . __DIR__ . "/conf/Configuration.php\".\n");
@@ -52,7 +55,7 @@ try {
     $document = $session->createDocument(
         $properties,
         $session->getObjectByPath('/Data Dictionary/Models'),
-        \GuzzleHttp\Stream\Stream::factory(fopen(__DIR__ . '/resource/custommodel.xml', 'r'))
+        stream_for(fopen(__DIR__ . '/resource/custommodel.xml', 'r'))
     );
 
     echo "Model has been created in '/Data Dictionary/Models/'. Model Id: " . $document->getId() . "\n";

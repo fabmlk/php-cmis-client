@@ -45,7 +45,7 @@ $rootFolder = $session->getObject($session->createObjectId($session->getRootFold
 try {
 
 	$document = null;
-	$stream = \GuzzleHttp\Stream\Stream::factory(fopen(__DIR__ . '/../README.md', 'r'));
+	$stream = \GuzzleHttp\Psr7\stream_for(fopen(__DIR__ . '/../README.md', 'r'));
 	foreach ($rootFolder->getChildren() as $child) {
 		if ($child->getName() === 'Demo Object') {
 			echo "[*] Using existing README.md document in repository root folder.\n";

@@ -35,7 +35,7 @@ use Dkd\PhpCmis\Definitions\PropertyDefinitionInterface;
 use Dkd\PhpCmis\Definitions\TypeDefinitionInterface;
 use Dkd\PhpCmis\Definitions\TypeMutabilityInterface;
 use Dkd\PhpCmis\Enum\Updatability;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * A factory to create and convert CMIS objects.

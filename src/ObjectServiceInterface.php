@@ -21,7 +21,7 @@ use Dkd\PhpCmis\Data\RenditionDataInterface;
 use Dkd\PhpCmis\Enum\IncludeRelationships;
 use Dkd\PhpCmis\Enum\UnfileObject;
 use Dkd\PhpCmis\Enum\VersioningState;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Object Service interface.

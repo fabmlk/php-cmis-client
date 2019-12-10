@@ -226,7 +226,7 @@ class SessionCacheTest extends \PHPUnit_Framework_TestCase
         $document = $session->getObject($objectId);
 
         $objectId = $document->setContentStream(
-            \GuzzleHttp\Stream\Stream::factory("Updated!!"),
+            \GuzzleHttp\Psr7\stream_for("Updated!!"),
             true,
             false
         );
@@ -259,7 +259,7 @@ class SessionCacheTest extends \PHPUnit_Framework_TestCase
         $document = $session->getObject($objectId);
 
         $objectId = $document->setContentStream(
-            \GuzzleHttp\Stream\Stream::factory("Updated!!"),
+            \GuzzleHttp\Psr7\stream_for("Updated!!"),
             true,
             false
         );

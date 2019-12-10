@@ -26,9 +26,9 @@ use Dkd\PhpCmis\Exception\CmisInvalidArgumentException;
 use Dkd\PhpCmis\ObjectServiceInterface;
 use Dkd\PhpCmis\PropertyIds;
 use Dkd\PhpCmis\SessionParameter;
-use Guzzle\Http\Message\Response;
-use GuzzleHttp\Stream\LimitStream;
-use GuzzleHttp\Stream\StreamInterface;
+use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\LimitStream;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Object Service Browser Binding client.

@@ -16,7 +16,7 @@ $doc = $session->getObjectByPath('/Demo Object');
 echo 'Current Id: ' . $doc->getId() . PHP_EOL;
 
 $objectIdReturned = $doc->setContentStream(
-    \GuzzleHttp\Stream\Stream::factory("Hello Toto!"),
+    \GuzzleHttp\Psr7\stream_for("Hello Toto!"),
     true,
     false
 );

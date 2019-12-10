@@ -10,7 +10,6 @@ namespace Dkd\PhpCmis\Test\Unit;
  * file that was distributed with this source code.
  */
 
-use Guzzle\Common\Exception\RuntimeException;
 use GuzzleHttp\Psr7\Response;
 
 /**
@@ -44,7 +43,7 @@ trait FixtureHelperTrait
         $result = [];
         try {
             $result = (array) \json_decode($response->getBody(), true);
-        } catch (RuntimeException $exception) {
+        } catch (\RuntimeException $exception) {
             $this->fail(sprintf('Fixture "%s" does not contain a valid JSON body!', $fixture));
         }
 

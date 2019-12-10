@@ -31,7 +31,7 @@ use Dkd\PhpCmis\Enum\UnfileObject;
 use Dkd\PhpCmis\Enum\VersioningState;
 use Dkd\PhpCmis\SessionParameter;
 use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 use League\Url\Url;
 use PHPUnit_Framework_MockObject_MockObject;
 
@@ -66,7 +66,7 @@ class ObjectServiceTest extends AbstractBrowserBindingServiceTestCase
         $includeAcl = false
     ) {
         $responseData = ['foo' => 'bar'];
-        $responseMock = $this->getMockBuilder('\\GuzzleHttp\\Message\\Response')->disableOriginalConstructor(
+        $responseMock = $this->getMockBuilder('\\GuzzleHttp\\Psr7\\Response')->disableOriginalConstructor(
         )->setMethods(['getBody'])->getMock();
         $responseMock->expects($this->any())->method('getBody')->willReturn(json_encode($responseData));
 
@@ -262,14 +262,14 @@ class ObjectServiceTest extends AbstractBrowserBindingServiceTestCase
         $property = new PropertyString('cmis:name', 'name.jpg');
         $properties = new Properties();
         $properties->addProperty($property);
-        $streamWithFileExtension = $this->getMockBuilder('\\GuzzleHttp\\Stream\\StreamInterface')->setMethods(
+        $streamWithFileExtension = $this->getMockBuilder('\\Psr\\Http\\Message\\StreamInterface')->setMethods(
             ['getMetadata']
         )->getMockForAbstractClass();
         $streamWithFileExtension->expects($this->any())->method('getMetadata')->with('uri')->willReturn(
             '/foo/bar/baz.jpg'
         );
 
-        $streamWithoutFileExtension = $this->getMockBuilder('\\GuzzleHttp\\Stream\\StreamInterface')->setMethods(
+        $streamWithoutFileExtension = $this->getMockBuilder('\\Psr\\Http\\Message\\StreamInterface')->setMethods(
             ['getMetadata']
         )->getMockForAbstractClass();
         $streamWithoutFileExtension->expects($this->any())->method('getMetadata')->with('uri')->willReturn(
@@ -1787,7 +1787,7 @@ class ObjectServiceTest extends AbstractBrowserBindingServiceTestCase
         );
 
         if ($offset !== null) {
-            $this->assertInstanceOf('\\GuzzleHttp\\Stream\\LimitStream', $responseContentStream);
+            $this->assertInstanceOf('\\GuzzleHttp\\Psr7\\LimitStream', $responseContentStream);
         } else {
             $this->assertSame($contentStream, $responseContentStream);
         }

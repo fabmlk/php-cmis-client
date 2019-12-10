@@ -34,7 +34,7 @@ use Dkd\PhpCmis\SessionParameter;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 use League\Url\Url;
 use Psr\Http\Message\ResponseInterface;
 use function basename;

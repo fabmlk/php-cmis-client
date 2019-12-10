@@ -18,7 +18,7 @@ use Dkd\PhpCmis\DataObjects\RelationshipTypeDefinition;
 use Dkd\PhpCmis\DataObjects\SecondaryTypeDefinition;
 use Dkd\PhpCmis\Definitions\PropertyDefinitionInterface;
 use Dkd\PhpCmis\Exception\CmisInvalidArgumentException;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Factory for CMIS binding objects.

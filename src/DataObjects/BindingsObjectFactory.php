@@ -25,7 +25,7 @@ use Dkd\PhpCmis\Definitions\PropertyUriDefinitionInterface;
 use Dkd\PhpCmis\Enum\BaseTypeId;
 use Dkd\PhpCmis\Exception\CmisInvalidArgumentException;
 use Dkd\PhpCmis\Exception\CmisRuntimeException;
-use GuzzleHttp\Stream\StreamInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * CMIS binding object factory implementation.
