@@ -219,7 +219,7 @@ class Document extends AbstractFileableCmisObject implements DocumentInterface
                 $addAces,
                 $removeAces
             );
-        } catch (CmisNotSupportedException $notSupportedException) {
+        } catch (CmisNotSupportedException|CmisRuntimeException $runtimeException) {
             $newObjectId = $this->copyViaClient(
                 $targetFolderId,
                 $properties,
@@ -303,7 +303,9 @@ class Document extends AbstractFileableCmisObject implements DocumentInterface
             }
         }
 
-        $newProperties = array_merge($newProperties, $properties);
+        $newProperties = array_filter(array_merge($newProperties, $properties), function ($value) {
+            return null !== $value;
+        });
         $contentStream = $allPropertiesDocument->getContentStream();
 
         return $this->getSession()->createDocument(
