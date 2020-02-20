@@ -597,7 +597,7 @@ abstract class AbstractBrowserBindingService implements LinkAccessInterface
      */
     protected function convertPropertyValueToSimpleType($value)
     {
-        if ($value instanceof \DateTime) {
+        if ($value instanceof \DateTimeInterface) {
             // CMIS expects a timestamp in milliseconds
             $value = $value->getTimestamp() * 1000;
         } elseif (is_bool($value)) {

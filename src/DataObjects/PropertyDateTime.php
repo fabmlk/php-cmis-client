@@ -25,7 +25,7 @@ class PropertyDateTime extends AbstractPropertyData implements MutablePropertyDa
     public function setValues(array $values)
     {
         foreach ($values as $value) {
-            $this->checkType(\DateTime::class, $value, true);
+            $this->checkType(\DateTimeInterface::class, $value, true);
         }
         parent::setValues($values);
     }
