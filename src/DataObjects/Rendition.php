@@ -11,9 +11,11 @@ namespace Dkd\PhpCmis\DataObjects;
  */
 
 use Dkd\PhpCmis\Bindings\LinkAccessInterface;
+use Dkd\PhpCmis\Cache\SkipSessionSerializationOnSleepTrait;
 use Dkd\PhpCmis\Data\DocumentInterface;
 use Dkd\PhpCmis\Data\RenditionInterface;
 use Dkd\PhpCmis\OperationContextInterface;
+use Dkd\PhpCmis\Session;
 use Dkd\PhpCmis\SessionInterface;
 use Psr\Http\Message\StreamInterface;
 
@@ -22,6 +24,8 @@ use Psr\Http\Message\StreamInterface;
  */
 class Rendition extends RenditionData implements RenditionInterface
 {
+    use SkipSessionSerializationOnSleepTrait;
+
     /**
      * @var SessionInterface
      */
@@ -136,5 +140,13 @@ class Rendition extends RenditionData implements RenditionInterface
             );
         }
         return null;
+    }
+
+    /**
+     * @param Session $session
+     */
+    public function setSession(Session $session)
+    {
+        $this->session = $session;
     }
 }

@@ -10,6 +10,7 @@ namespace Dkd\PhpCmis\DataObjects;
  * file that was distributed with this source code.
  */
 
+use Dkd\PhpCmis\Cache\SkipSessionSerializationOnSleepTrait;
 use Dkd\PhpCmis\Data\ObjectTypeInterface;
 use Dkd\PhpCmis\Enum\BaseTypeId;
 use Dkd\PhpCmis\Session;
@@ -21,6 +22,8 @@ use Dkd\PhpCmis\TreeInterface;
  */
 trait ObjectTypeHelperTrait
 {
+    use SkipSessionSerializationOnSleepTrait;
+
     /**
      * @var null|ObjectTypeInterface
      */
@@ -134,17 +137,5 @@ trait ObjectTypeHelperTrait
     public function setSession(Session $session)
     {
         $this->session = $session;
-    }
-
-    /**
-     * @return array
-     */
-    public function __sleep()
-    {
-        $properties = get_object_vars($this);
-        // discard session property, as noted in AbstractCmisObject::serialize()
-        unset($properties['session']);
-
-        return array_keys($properties);
     }
 }

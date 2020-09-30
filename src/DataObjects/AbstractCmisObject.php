@@ -900,6 +900,15 @@ abstract class AbstractCmisObject implements CmisObjectInterface, \Serializable
     {
         $this->session = $session;
         $this->objectType->setSession($session);
+        foreach ($this->relationships as $relationship) {
+            $relationship->refreshSession($session);
+        }
+        foreach ($this->policies as $policy) {
+            $policy->refreshSession($session);
+        }
+        foreach ($this->renditions as $rendition) {
+            $rendition->setSession($session);
+        }
     }
 
     /**
@@ -909,7 +918,8 @@ abstract class AbstractCmisObject implements CmisObjectInterface, \Serializable
      * (from parameters HTTP_INVOKER_OBJECT, PSR6_CACHE_OBJECT etc...).
      * Next we have to serialize $objectType property which also keeps a
      * reference to the session. This is taken care of in the __sleep() method
-     * of ObjectTypeHelperTrait.
+     * of ObjectTypeHelperTrait (by way of SkipSessionSerializationOnSleepTrait).
+     * This holds true for embedded renditions, relationships or policies.
      * All properties are serialize()'d individually and stored in
      * an associative array.
      * Finally, json_encode() is used to serialize this associative array
